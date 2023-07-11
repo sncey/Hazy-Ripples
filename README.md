@@ -162,6 +162,15 @@ To run locally you need to have environment variables defined:
 
 <a style="color:black; text-decoration:underline;" href="https://github.com/cyberRasam" target="_blank">Github </a>
 
+- [Badr Nasher]()
+<br>
+<br>
+
+<a href="https://www.linkedin.com/in/bedreddin-naser-bb548518b/" target="_blank">LinkedIn</a>
+
+<br>
+
+<a style="color:black; text-decoration:underline;" href="https://github.com/badrnasher" target="_blank">Github </a>
 
 
 
