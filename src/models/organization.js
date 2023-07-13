@@ -26,6 +26,13 @@ const organizationSchema = mongoose.Schema({
     image: {
         type: String,
     },
+    phone_number: {
+        type: String,
+    },
+    rating: {
+        type: Number,
+    },
+    
 
 })
 
