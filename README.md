@@ -13,23 +13,32 @@ This is a template for the backend capstone project. It includes a basic structu
 
 ## Structure
 ```bash
-├── db
-│   ├── connection.js
-│   ├── models
-│   │   ├── event.js
-│   │   └── user.js
-│   └── seed.js
-├── routes
-│   ├── event.js
-│   └── user.js
-├── tests
-│   ├── event.test.js
-│   └── user.test.js
+└── src
+|   ├── app.js                    
+|   ├── db
+|   │   ├── connection.js
+|   │   └── models
+|   │       ├── event.js
+|   │       ├── user.js
+|   │       └── organization.js
+|   ├── middleware
+|   │   ├── authentication.js
+|   │   └── authorization.js
+|   ├── routes
+|   │   ├── event.js
+|   │   ├── user.js
+|   │   ├── organization.js
+|   │   └── index.js
+|   └── tests
+|       ├── event.test.js
+|       ├── user.test.js
+|       └── organization.test.js
+|
 ├── .env
 ├── .gitignore
 ├── package-lock.json
-├── package.json
-└── server.js
+├── .lintstagedrc
+└── package.json
 ```
 
 ## Authentication
@@ -100,18 +109,49 @@ We provide our API's under `user` route and a `event` route. The routes are setu
 
 We use jest for testing.
 
+## Guest Stories
+
+1. As a guest, I want to be able to see all events.
+2. As a guest, I want to be able to see the home page.
+3. As a guest, I want to be able to create an account.
+4. As a guest, I want to be able to filter events by category.
+5. As a guest, I want to be able to filter events by location.
+6. As a guest, I want to be able to filter events by date.
+7. As a guest, I want to be able to search for events.
+
+
 ## User Stories
 
-1. As a user, I want to be able to create an account.
-2. As a user, I want to be able to login to my account.
-3. As a user, I want to be able to create an event.
-4. As a user, I want to be able to see all events.
-5. As a user, I want to be able to see all events that I created.
-6. As a user, I want to be able to update my event.
-7. As a user, I want to be able to delete my event.
-8. As a user, I want to be able to see all events that I am attending.
-9. As a user, I want to be able to attend an event.
-10. As a user, I want to be able to unattend an event.
+1. As a user, I want to be able to login to my account.
+2. As a user, I want to be able to see all events.
+3. As a user, I want to be able to see all events that I am attending.
+4. As a user, I want to be able to attend an event.
+5. As a user, I want to be able to unattend an event.
+6. As a user, I want to be able to update my account.
+7. As a user, I want to be able to deactivate my account.
+8. As a user, I want to be able to filter events by category.
+9. As a user, I want to be able to filter events by location.
+10. As a user, I want to be able to filter events by date.
+11. As a user, I want to be able to search for events.
+
+## Organization Stories
+
+1. As an organization, I want to be able to create an account.
+2. As an organization, I want to be able to login to my account.
+3. As an organization, I want to be able to create an event.
+4. As an organization, I want to be able to see all events that I created.
+5. As an organization, I want to be able to update my event.
+6. As an organization, I want to be able to delete my event.
+7. As an organization, I want to be able to update my account.
+8. As an organization, I want to be able to deactivate my account.
+9. As an organization, I want to be able to see all users that are attending my events.
+10. As an organization, I want to be able to notify all users that are attending my events.
+11. As an organization, I want to be able to notify all users that are attending my events about any changes to the event.
+12. As an organization, I want to be able to filter events by category.
+13. As an organization, I want to be able to filter events by location.
+14. As an organization, I want to be able to filter events by date.
+15. As an organization, I want to be able to search for events.
+
 ## Technologies Used
 
 - Node.js
