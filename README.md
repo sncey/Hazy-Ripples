@@ -13,27 +13,27 @@ This is a template for the backend capstone project. It includes a basic structu
 
 ## Structure
 ```bash
-└── src
-|   ├── app.js                    
-|   ├── db
-|   │   ├── connection.js
-|   │   └── models
-|   │       ├── event.js
-|   │       ├── user.js
-|   │       └── organization.js
-|   ├── middleware
-|   │   ├── authentication.js
-|   │   └── authorization.js
-|   ├── routes
-|   │   ├── event.js
-|   │   ├── user.js
-|   │   ├── organization.js
-|   │   └── index.js
-|   └── tests
-|       ├── event.test.js
-|       ├── user.test.js
-|       └── organization.test.js
-|
+├── src
+│   ├── app.js                    
+│   ├── db
+│   │   ├── connection.js
+│   │   └── models
+│   │       ├── event.js
+│   │       ├── user.js
+│   │       └── organization.js
+│   ├── middleware
+│   │   ├── authentication.js
+│   │   └── authorization.js
+│   ├── routes
+│   │   ├── event.js
+│   │   ├── user.js
+│   │   ├── organization.js
+│   │   └── index.js
+│   └── __tests__
+│       ├── event.test.js
+│       ├── user.test.js
+│       └── organization.test.js
+│
 ├── .env
 ├── .gitignore
 ├── package-lock.json
@@ -112,27 +112,28 @@ We use jest for testing.
 ## Guest Stories
 
 1. As a guest, I want to be able to see all events.
-2. As a guest, I want to be able to see the home page.
-3. As a guest, I want to be able to create an account.
-4. As a guest, I want to be able to filter events by category.
-5. As a guest, I want to be able to filter events by location.
-6. As a guest, I want to be able to filter events by date.
-7. As a guest, I want to be able to search for events.
+2. As a guest, I want to be able to login to my account.
+3. As a guest, I want to be able to see the home page.
+4. As a guest, I want to be able to create an account.
+5. As a guest, I want to be able to filter events by category.
+6. As a guest, I want to be able to filter events by location.
+7. As a guest, I want to be able to filter events by date.
+8. As a guest, I want to be able to search for events.
 
 
 ## User Stories
 
-1. As a user, I want to be able to login to my account.
-2. As a user, I want to be able to see all events.
-3. As a user, I want to be able to see all events that I am attending.
-4. As a user, I want to be able to attend an event.
-5. As a user, I want to be able to unattend an event.
-6. As a user, I want to be able to update my account.
-7. As a user, I want to be able to deactivate my account.
-8. As a user, I want to be able to filter events by category.
-9. As a user, I want to be able to filter events by location.
-10. As a user, I want to be able to filter events by date.
-11. As a user, I want to be able to search for events.
+1. As a user, I want to be able to see all events.
+2. As a user, I want to be able to see all events that I am attending.
+3. As a user, I want to be able to attend an event.
+4. As a user, I want to be able to unattend an event.
+5. As a user, I want to be able to update my account.
+6. As a user, I want to be able to deactivate my account.
+7. As a user, I want to be able to filter events by category.
+8. As a user, I want to be able to filter events by location.
+9. As a user, I want to be able to filter events by date.
+10. As a user, I want to be able to search for events.
+11. As a user, I want to be able to sign out
 
 ## Organization Stories
 
@@ -183,44 +184,21 @@ To run locally you need to have environment variables defined:
 ## Authors
 
 - [Ceyda Esen]()
-<br>
-<br>
-<a href="https://www.linkedin.com/in/ceyda-esen/" target="_blank">LinkedIn</a>
+<a href="https://www.linkedin.com/in/ceyda-esen/" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="hozifah hebbo" height="30" width="40" /></a>
+<a href="https://github.com/tomiece317" target="blank"><img align="center" src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" alt="hozifah hebbo" height="30" width="40" /></a>
 <br>
 
-<a style="color:black; text-decoration:underline;" href="https://github.com/tomiece317" target="_blank">Github </a>
-<br>
-<br>
 
 - [Rasam Rabiee]()
+<a href="https://www.linkedin.com/in/rasam-rabiee" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="hozifah hebbo" height="30" width="40" /></a>
+<a href="https://github.com/cyberRasam" target="blank"><img align="center" src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" alt="hozifah hebbo" height="30" width="40" /></a>
 <br>
-<br>
-
-<a href="https://www.linkedin.com/in/rasam-rabiee" target="_blank">LinkedIn</a>
-
-<br>
-
-<a style="color:black; text-decoration:underline;" href="https://github.com/cyberRasam" target="_blank">Github </a>
 
 - [Badr Nasher]()
-<br>
-<br>
-
-<a href="https://www.linkedin.com/in/bedreddin-naser-bb548518b/" target="_blank">LinkedIn</a>
-
+<a href="https://www.linkedin.com/in/bedreddin-naser-bb548518b/" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="hozifah hebbo" height="30" width="40" /></a>
+<a href="https://github.com/badrnasher" target="blank"><img align="center" src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" alt="hozifah hebbo" height="30" width="40" /></a>
 <br>
 
-<a style="color:black; text-decoration:underline;" href="https://github.com/badrnasher" target="_blank">Github </a>
-
-
-
-
-
-
-
-
-
-
-    
-
-
+- [Houzifa Habbo]()
+<a href="https://linkedin.com/in/hozifah hebbo" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="hozifah hebbo" height="30" width="40" /></a>
+<a href="https://github.com/houzifahabbo" target="blank"><img align="center" src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" alt="hozifah hebbo" height="30" width="40" /></a>
