@@ -34,6 +34,11 @@ const userSchema = mongoose.Schema({
     avatar: {
       type: String,
     },
+    googleId : {
+      type: String,
+      required: false, 
+      unique: true
+    }
   });
 
   userSchema.virtual('fullname').get(function () {
