@@ -1,11 +1,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-
-const app = express();
-const port = 3001;
-
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const apiRoutes = require('./routers/index');
+require("dotenv").config();
+
+const port = process.env.NODE_LOCAL_PORT || 8080;
+
+const app = express();
+
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -347,11 +351,15 @@ const options = {
   },
   apis: ["./src/app.js"],
 };
+
 const specs = swaggerJsdoc(options);
+
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(specs, { explorer: true })
 );
 
-app.listen(port, () => console.debug(`Server listening on port ${port}`));
+app.use('/api', apiRoutes);
+
+app.listen(port, () => console.debug(`Server listening on port ${port}`))
