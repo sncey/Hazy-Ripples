@@ -1,19 +1,14 @@
 const express = require('express');
 const routes = express.Router();
 const userController = require('../controllers/user');
+const authenticated = require('../middleware/authentication');
 
-const isAuthenticated = function (req, res, next) {
-    next();
-};
-
-// i am not sure is we want middleware for the get signup and signin
-routes.get('/signin', isAuthenticated, userController.getSignin);
-routes.get('/signup', isAuthenticated, userController.getSignup);
-routes.post('/signin', isAuthenticated, userController.postSignin);
-routes.post('/signup', isAuthenticated, userController.postSignup);
-routes.put('/profile', isAuthenticated, userController.updateProfile);
-routes.delete('/profile', isAuthenticated, userController.deleteProfile);
-routes.get('/logout', isAuthenticated, userController.logout);
-routes.get('/authenticated', isAuthenticated, userController.authenticated);
+routes.post('/signin', userController.postSignin);
+routes.post('/signup', userController.postSignup);
+// routes.post('/googleSignin', userController.postGoogle);
+routes.put('/', authenticated.authMiddleware, userController.updateProfile);
+routes.delete('/', authenticated.authMiddleware, userController.deleteProfile);
+routes.get('/signout', authenticated.authMiddleware, userController.signout);
+routes.get('/authenticated', authenticated.authMiddleware, userController.authenticated);
 
 module.exports = routes;

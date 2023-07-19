@@ -3,16 +3,11 @@ const bodyParser = require("body-parser");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const apiRoutes = require('./routes/index');
+const cookieParser = require("cookie-parser");
 const connectToMongo = require("./db/connection");
-const session = require('express-session');
-require("dotenv").config();
-
 const port = process.env.NODE_LOCAL_PORT || 8080;
-
 const app = express();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+require("dotenv").config();
 
 const swaggerOptions = {
   definition: {
@@ -41,7 +36,19 @@ const swaggerOptions = {
   apis: ["'./controllers/userController.js', './swagger.js'"],
 };
 
+const middleware = [
+  cookieParser(),
+  bodyParser.urlencoded({ extended: false }),
+  express.json(),
+  attachUerToRequest,
+]
+
 const specs = swaggerJsdoc(swaggerOptions);
+function attachUerToRequest(req, res, next) {
+  res.locals.user = req.user;
+  next();
+}
+
 
 app.use(
   "/api-docs",
@@ -49,12 +56,9 @@ app.use(
   swaggerUi.setup(specs, { explorer: true })
 );
 
-app.use(session({
-  resave: false,
-  saveUninitialized: true,
-  secret: process.env.SESSION_SECRET,
-  cookie: { secure: false }
-}));
+middleware.forEach((item) => {
+  app.use(item);
+});
 
 app.use('/api', apiRoutes);
 
