@@ -4,7 +4,8 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const apiRoutes = require('./routes/index');
 const cookieParser = require("cookie-parser");
-const connectToMongo = require("./db/connection");
+const db = require("./db/connection");
+
 const port = process.env.NODE_LOCAL_PORT || 8080;
 const app = express();
 require("dotenv").config();
@@ -66,4 +67,5 @@ app.use('/', apiRoutes);
 app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);
   connectToMongo();
-})
+  // connectToMongo();
+});
