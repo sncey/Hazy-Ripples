@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
-const Event = require('./event');
 const bcrypt = require('bcrypt');
 
-//TODO: ADD VALIDATION for email AND AGE
-//TODO: MAKE _id And id NOT VISIBLE
 const userSchema = mongoose.Schema({
     username: {
       type: String,
@@ -27,6 +24,11 @@ const userSchema = mongoose.Schema({
         required: true,
         unique: true,
     },
+    phoneNumber: {
+      type: Number,
+      required: true,
+      unique: true,
+  },
     age: {
         type: Number,
         required: true,
@@ -65,34 +67,91 @@ userSchema.virtual('fullname').get(function () {
   return `${this.firstname} ${this.lastname}`;
 });
 
+// Email validation function
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Age validation function
+function validateAge(age) {
+  return age >= 18;
+}
+
 // Password validation function
 function validatePasswordStrength(password) {
   const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
   return passwordRegex.test(password);
 }
 
-// Middleware to hash the password before saving
+
+// userSchema.pre('save', async function (next) {
+//   if (this.isModified('password_hash') || this.isNew) {
+//     try {
+//       // Validate the password
+//       if (!validatePasswordStrength(this.password_hash)) {
+//         throw new Error(
+//           'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
+//         );
+//       }
+//       const saltRounds = 10;
+//       const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
+//       this.password_hash = hashedPassword;
+//       next();
+//     } catch (err) {
+//       return next(err);
+//     }
+//   } else {
+//     next();
+//   }
+// });
+
+// Middleware to validate email and age before saving
 userSchema.pre('save', async function (next) {
-  if (this.isModified('password_hash') || this.isNew) {
-    try {
-      // Validate the password
-      if (!validatePasswordStrength(this.password_hash)) {
-        throw new Error(
-          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
-        );
-      }
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
-      this.password_hash = hashedPassword;
-      next();
-    } catch (err) {
-      return next(err);
+  if (this.isModified('email') || this.isNew) {
+    // Validate the email
+    if (!validateEmail(this.email)) {
+      return next(new Error('Invalid email format.'));
     }
-  } else {
-    next();
   }
+
+  if (this.isModified('age') || this.isNew) {
+    // Validate the age
+    if (!validateAge(this.age)) {
+      return next(new Error('Age must be at least 18.'));
+    }
+  }
+
+  if (this.isModified('password_hash') || this.isNew) {
+    // Validate the password
+    if (!validatePasswordStrength(this.password_hash)) {
+      return next(
+        new Error(
+          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
+        )
+      );
+    }
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
+    this.password_hash = hashedPassword;
+  }
+
+  next();
 });
 
+/*
+In the above code, we added two custom validation functions:
+validateEmail(email) and validateAge(age). 
+The validateEmail() function uses a regular expression to check
+if the email format is valid. The validateAge() function ensures 
+that the age is at least 18.
+
+Inside the pre('save') middleware, we call these validation 
+functions when a new user is being created or when the email or 
+age fields are modified. If any of the validations fail, 
+we return an error using next(new Error(...)), which will 
+prevent the user from being saved.
+*/
 userSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password_hash);
 };
