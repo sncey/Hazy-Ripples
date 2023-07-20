@@ -8,8 +8,6 @@ const mongoURI = process.env.MONGO_URI;
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  // useCreateIndex: true,
-  // useFindAndModify: false,
 });
 
 // Get the default connection
@@ -24,9 +22,6 @@ db.on("error", (error) => {
   console.error("MongoDB connection error:", error);
 });
 
-db.on("disconnected", () => {
-  console.log("Disconnected from MongoDB");
+db.on("error", (err) => {
+  console.error("Database connection error: ", err);
 });
-
-// Export the database connection
-module.exports = db;
