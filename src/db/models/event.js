@@ -23,6 +23,7 @@ const eventSchema = mongoose.Schema({
     },
     end_date: {
         type: Date,
+        required: true,
     },
     created_at: {
         type: Date,
@@ -39,6 +40,7 @@ const eventSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],
+    donations: [{type: mongoose.Schema.Types.ObjectId, ref: 'Donation'}]
 })
 
 
