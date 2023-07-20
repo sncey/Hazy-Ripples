@@ -9,7 +9,6 @@ const authMiddleware = (req, res, next) => {
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decodedToken; // Attach the user to the request object for later use

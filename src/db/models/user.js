@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const Event = require('./event');
 
-//TODO: ADD VALIDATION for email
+//TODO: ADD VALIDATION for email AND AGE
+//TODO: MAKE _id And id NOT VISIBLE
 const userSchema = mongoose.Schema({
     username: {
       type: String,

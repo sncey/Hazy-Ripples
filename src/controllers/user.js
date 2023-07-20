@@ -89,10 +89,10 @@ function validatePasswordStrength(password) {
     return passwordRegex.test(password);
 }
 
+//TODO: ADD GOOGLE SIGNIN
 userController.googleSignin = (req, res) => {  
 };
 
-//edit error messages
 userController.postSignin =  async (req, res) => {
     const { email, password, rememberMe } = req.body;
     const jwtExp = rememberMe ? Math.floor(Date.now() / 1000) + 1209600 : Math.floor(Date.now() / 1000)+ 86400; // 14 days expiration : 1 day expiration
@@ -112,7 +112,8 @@ userController.postSignin =  async (req, res) => {
 
         const token = jwt.sign(
             {
-                id: user,
+                id: user.id,
+                username: user.username,
                 exp: jwtExp,
                 iat: Math.floor(Date.now() / 1000), // Issued at date
             },
@@ -147,13 +148,13 @@ userController.postSignup = async (req, res) => {
         if (user) {
         return res
             .status(400)
-            .json({ error: `${email}: username already used` });
+            .json({ error: `${email} already used` });
         }
         const validPassword = validatePasswordStrength(password);
         if (!validPassword) {
             return res
                 .status(400)
-                .json({ error: 'password is not strong enough' });
+                .json({ error: 'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.' });
         }
         const password_hash = await bcrypt.hash(password, 10);
         user = await UserModel.create({
@@ -168,7 +169,8 @@ userController.postSignup = async (req, res) => {
         });
         const token = jwt.sign(
             {
-                id: user,
+                id: user.id,
+                username: user.username,
                 exp:  Math.floor(Date.now() / 1000)+ 86400,
                 iat: Math.floor(Date.now() / 1000), // Issued at date
             },
@@ -177,6 +179,11 @@ userController.postSignup = async (req, res) => {
         res.cookie('jwt', token, { httpOnly: true});
         res.json(token);
     } catch (err) {
+        if (err.code === 11000) {
+            return res
+            .status(400)
+            .json({ error: `${Object.keys(err.keyValue)} already used` });
+        }
         res.status(400).json({ error: err.message });
     } 
 };
@@ -202,7 +209,7 @@ userController.updateProfile = async (req, res) => {
         if (!validPassword) {
             return res
                 .status(400)
-                .json({ error: 'password is not strong enough' });
+                .json({ error: 'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.' });
         }
         if (password !== confirmPassword) {
             return res
@@ -233,23 +240,34 @@ userController.deleteProfile = async (req, res) => {
           return res.status(422).json({message:'Blog post not found'});
         }
         res.clearCookie('jwt');
-        // res.redirect('/api-docs');  we want to the user to be redirected to the api-docs page as a guest
-        res.json(deletedUser);
+        res.redirect('../api-docs');
+        res.json({message:'User deleted successfully'});
     } catch (err) {
         res.status(422).json({ error: err.message });
     }
 };
 
 userController.signout = (req, res) => {
-    res.clearCookie('jwt');
-    res.json({ message: 'logged out successfully' });
+    try {
+        res.clearCookie('jwt');
+        res.redirect('../api-docs');
+        res.json({ message: 'logged out successfully' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 };
 
-userController.authenticated = async (req, res) => {
-    res.json({ message: 'authenticated successfully' });
+userController.profile = async (req, res) => {
+    const {username} = req.params;
+    try {
+        const profile = await UserModel.findOne({username});
+        if (!profile) {
+            return res.status(404).json({message:'User not found'});
+        }
+        res.json(profile);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 };
 
 module.exports = userController;
-
-
-/user/event 
