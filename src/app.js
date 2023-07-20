@@ -4,7 +4,8 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const apiRoutes = require("./routes/index");
 const cookieParser = require("cookie-parser");
-require("./db/connection");
+const connectToMongo = require("./db/connection");
+// require("./db/connection");
 require("dotenv").config();
 
 const port = process.env.NODE_LOCAL_PORT || 8080;
@@ -63,12 +64,24 @@ middleware.forEach((item) => {
   app.use(item);
 });
 
-middleware.forEach((item) => {
-  app.use(item);
-});
 
 app.use("/", apiRoutes);
 
-app.listen(port, () => {
-  console.debug(`Server listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.debug(`Server listening on port ${port}`);
+// });
+
+async function startServer() {
+  try {
+    app.listen(port, () => {
+      console.debug(`Server listening on port ${port}`);
+    });
+    const mongoClient = await connectToMongo();
+    app.locals.mongoClient = mongoClient; // Make the MongoDB client available to other parts of the application
+  } catch (error) {
+    console.error('Error starting the server:', error);
+    process.exit(1); // Exit the application if there's an error
+  }
+}
+
+startServer();

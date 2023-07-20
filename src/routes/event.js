@@ -7,7 +7,7 @@ routes.get('/', eventController.getEvents);
 routes.get('/:id', eventController.getEvent); //get event by id
 routes.post('/', authentication.authMiddleware, authentication.isOrganization , eventController.createEvent);
 routes.put('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.updateEvent);
-routes.delete('/:id', authentication.authMiddleware, authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.deleteEvent);
+routes.delete('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.deleteEvent);
 
 
 module.exports = routes;
