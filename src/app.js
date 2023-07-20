@@ -2,12 +2,16 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const apiRoutes = require('./routes/index');
+const apiRoutes = require("./routes/index");
 const cookieParser = require("cookie-parser");
-const connectToMongo = require("./db/connection");
-const port = process.env.NODE_LOCAL_PORT || 8080;
-const app = express();
+require("./db/connection");
 require("dotenv").config();
+
+const port = process.env.NODE_LOCAL_PORT || 8080;
+
+const app = express();
+
+// Add Swagger configuration options below this comment
 
 
 const swaggerOptions = {
@@ -42,14 +46,13 @@ const middleware = [
   bodyParser.urlencoded({ extended: false }),
   express.json(),
   attachUerToRequest,
-]
+];
 
 const specs = swaggerJsdoc(swaggerOptions);
 function attachUerToRequest(req, res, next) {
   res.locals.user = req.user;
   next();
 }
-
 
 app.use(
   "/api-docs",
@@ -61,7 +64,11 @@ middleware.forEach((item) => {
   app.use(item);
 });
 
-app.use('/', apiRoutes);
+middleware.forEach((item) => {
+  app.use(item);
+});
+
+app.use("/", apiRoutes);
 
 
 // app.listen(port, () => {
@@ -83,4 +90,5 @@ async function startServer() {
 }
 
 startServer(); 
+
 

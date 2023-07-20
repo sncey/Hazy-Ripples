@@ -111,23 +111,24 @@ userController.updateProfile = async (req, res) => {
         avatar,
     } = req.body;
     try{
-        const updatedUser = await UserModel.findById(user.id);
-        if (!updatedUser) {
-          return res.status(404).json({message:'User not found'});
-        }
+        // const updatedUser = await UserModel.findById(user.id);
         if (password !== confirmPassword) {
             return res
             .status(400)
             .json({ error: 'passwords do not match' });
         }
-        updatedUser.username = username;
-        updatedUser.firstname = firstname;
-        updatedUser.lastname = lastname;
-        updatedUser.age = age;
-        updatedUser.gender=gender;
-        updatedUser.avatar = avatar;
-        updatedUser.password_hash = password;
-        await updatedUser.save();
+        findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true});
+        if (!updatedUser) {
+          return res.status(404).json({message:'User not found'});
+        }
+        // updatedUser.username = username;
+        // updatedUser.firstname = firstname;
+        // updatedUser.lastname = lastname;
+        // updatedUser.age = age;
+        // updatedUser.gender=gender;
+        // updatedUser.avatar = avatar;
+        // updatedUser.password_hash = password;
+        // await updatedUser.save();
         res.json({message:'User updated successfully'});
     } catch (err) {
         checkErorrCode(err,res)
