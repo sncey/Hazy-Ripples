@@ -5,7 +5,7 @@ const swaggerUi = require("swagger-ui-express");
 const apiRoutes = require("./routers/index");
 require("dotenv").config();
 
-const port = process.env.NODE_LOCAL_PORT || 8080;
+const port = process.env.NODE_LOCAL_PORT || 3000;
 
 const app = express();
 const db = require("./db/connection");
@@ -368,5 +368,3 @@ app.use(
 );
 
 app.use("/api", apiRoutes);
-
-app.listen(port, () => console.debug(`Server listening on port ${port}`));
