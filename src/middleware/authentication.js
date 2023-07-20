@@ -1,16 +1,16 @@
 const jwt = require('jsonwebtoken');
 const OrganizationModel = require('../db/models/organization');
 const EventModel = require('../db/models/event');
+require('dotenv').config();
 
 const authMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
-
+  
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   try {
-    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decodedToken; // Attach the user to the request object for later use
     next();
   } catch (error) {
