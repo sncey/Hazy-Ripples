@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Event = require('./event');
+const bcrypt = require('bcrypt');
 
 //TODO: ADD VALIDATION for email AND AGE
 //TODO: MAKE _id And id NOT VISIBLE
@@ -64,15 +65,36 @@ userSchema.virtual('fullname').get(function () {
   return `${this.firstname} ${this.lastname}`;
 });
 
+// Password validation function
+function validatePasswordStrength(password) {
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+  return passwordRegex.test(password);
+}
+
+// Middleware to hash the password before saving
 userSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
-      this.password = await bcrypt.hash(this.password, 10);
+  if (this.isModified('password_hash') || this.isNew) {
+    try {
+      // Validate the password
+      if (!validatePasswordStrength(this.password_hash)) {
+        throw new Error(
+          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
+        );
+      }
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
+      this.password_hash = hashedPassword;
+      next();
+    } catch (err) {
+      return next(err);
+    }
+  } else {
+    next();
   }
-  next();
 });
 
 userSchema.methods.comparePassword = function (password) {
-  return bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.password_hash);
 };
 
 userSchema.set('toObject', { virtuals: true });
