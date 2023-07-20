@@ -58,6 +58,8 @@ const userSchema = mongoose.Schema({
     }
   });
 
+  userSchema.set('autoCreate', true);
+
 userSchema.virtual('fullname').get(function () {
   if (!this.firstname) {
     return this.username;

@@ -13,6 +13,7 @@ const app = express();
 
 // Add Swagger configuration options below this comment
 
+
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
@@ -69,6 +70,25 @@ middleware.forEach((item) => {
 
 app.use("/", apiRoutes);
 
-app.listen(port, () => {
-  console.debug(`Server listening on port ${port}`);
-});
+
+// app.listen(port, () => {
+//   console.debug(`Server listening on port ${port}`);
+//   connectToMongo();
+// })
+
+async function startServer() {
+  try {
+    const mongoClient = await connectToMongo();
+    app.locals.mongoClient = mongoClient; // Make the MongoDB client available to other parts of the application
+    app.listen(port, () => {
+      console.debug(`Server listening on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Error starting the server:', error);
+    process.exit(1); // Exit the application if there's an error
+  }
+}
+
+startServer(); 
+
+
