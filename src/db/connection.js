@@ -1,19 +1,32 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
-const url = process.env.DB_URL;
 
-const connectToMongo = () => {
-  mongoose.connect(url, { useNewUrlParser: true });
+// Retrieve the MongoDB connection URI from the environment variables
+const mongoURI = process.env.MONGO_URI;
 
-  db = mongoose.connection;
+// Establish a connection to the database
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  // useCreateIndex: true,
+  // useFindAndModify: false,
+});
 
-  db.once("open", () => {
-    console.log("Database connected: ", url);
-  });
+// Get the default connection
+const db = mongoose.connection;
 
-  db.on("error", (err) => {
-    console.error("Database connection error: ", err);
-  });
-}
+// Event listeners for the connection events
+db.on("connected", () => {
+  console.log("Connected to MongoDB");
+});
 
-module.exports = connectToMongo;
+db.on("error", (error) => {
+  console.error("MongoDB connection error:", error);
+});
+
+db.on("disconnected", () => {
+  console.log("Disconnected from MongoDB");
+});
+
+// Export the database connection
+module.exports = db;
