@@ -3,11 +3,21 @@ const OrganizationModel = require('../db/models/organization');
 const EventModel = require('../db/models/event');
 require('dotenv').config();
 
+const isAuthenticated = (req, res, next) => {
+  const token = req.cookies.jwt;
+  if(token) {
+    if (req.path.includes('/signin') || req.path.includes('/signup')) {
+      return res.redirect('http://localhost:3000/api-docs');
+    }
+  }
+  next()
+}
+
 const authMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
   
   if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Unauthorized' }); 
   }
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
@@ -78,4 +88,4 @@ const isEventOwner = async (req, res, next) => {
 
 
 
-module.exports = { authMiddleware, isOrganization , isEventOwner};
+module.exports = { authMiddleware, isOrganization , isEventOwner, isAuthenticated};
