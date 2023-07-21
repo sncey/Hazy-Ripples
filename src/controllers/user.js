@@ -87,6 +87,7 @@ userController.postSignup = async (req, res) => {
             username,
             firstname,
             lastname,
+            phoneNumber,
             password_hash: password,
             email,
             phoneNumber,

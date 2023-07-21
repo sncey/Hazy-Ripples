@@ -11,8 +11,6 @@ const port = process.env.NODE_LOCAL_PORT || 8080;
 
 const app = express();
 
-// Add Swagger configuration options below this comment
-
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
