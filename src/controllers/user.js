@@ -23,6 +23,10 @@ const checkErorrCode = (err,res) => {
     return res.status(400).json({ error: err.message });
 }
 
+userController.getsignin = (req, res) => {
+    res.json({message:'signin'});
+};
+
 //TODO: ADD GOOGLE SIGNIN
 userController.googleSignin = (req, res) => {  
 };
@@ -101,34 +105,19 @@ userController.postSignup = async (req, res) => {
 userController.updateProfile = async (req, res) => {
     const user = req.user;
     const {
-        username,
-        firstname,
-        lastname,
         password,
         confirmPassword,
-        age,
-        gender,
-        avatar,
     } = req.body;
     try{
-        // const updatedUser = await UserModel.findById(user.id);
         if (password !== confirmPassword) {
             return res
             .status(400)
             .json({ error: 'passwords do not match' });
         }
-        findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true});
+        const updatedUser = await UserModel.findByIdAndUpdate(user.id, {$set: req.body}, {new: true});
         if (!updatedUser) {
           return res.status(404).json({message:'User not found'});
         }
-        // updatedUser.username = username;
-        // updatedUser.firstname = firstname;
-        // updatedUser.lastname = lastname;
-        // updatedUser.age = age;
-        // updatedUser.gender=gender;
-        // updatedUser.avatar = avatar;
-        // updatedUser.password_hash = password;
-        // await updatedUser.save();
         res.json({message:'User updated successfully'});
     } catch (err) {
         checkErorrCode(err,res)

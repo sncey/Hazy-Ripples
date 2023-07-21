@@ -1,5 +1,5 @@
-// const OrganizationModel = require('../db/models/organization');
-// const organizationController = {};
+const OrganizationModel = require('../db/models/organization');
+const organizationController = {};
 
 // organizationController.getOrganizations = async (req, res) => {
 //     try {
@@ -47,4 +47,4 @@
 //         const { id } = req.params;
 //         const organization = await 
 
-// module.exports = organizationController;
+module.exports = organizationController;
