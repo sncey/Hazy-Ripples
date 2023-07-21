@@ -54,7 +54,7 @@ const userSchema = mongoose.Schema({
     googleId : {
       type: String,
       required: false, 
-      unique: true
+      // unique: true
     }
   });
 

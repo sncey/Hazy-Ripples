@@ -11,9 +11,6 @@ const port = process.env.NODE_LOCAL_PORT || 8080;
 
 const app = express();
 
-// Add Swagger configuration options below this comment
-
-
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
@@ -48,11 +45,16 @@ const middleware = [
   attachUerToRequest,
 ];
 
+middleware.forEach((item) => {
+  app.use(item);
+});
+
 const specs = swaggerJsdoc(swaggerOptions);
 function attachUerToRequest(req, res, next) {
   res.locals.user = req.user;
   next();
 }
+
 
 app.use(
   "/api-docs",
@@ -60,35 +62,9 @@ app.use(
   swaggerUi.setup(specs, { explorer: true })
 );
 
-middleware.forEach((item) => {
-  app.use(item);
-});
-
-middleware.forEach((item) => {
-  app.use(item);
-});
-
 app.use("/", apiRoutes);
 
 
-// app.listen(port, () => {
-//   console.debug(`Server listening on port ${port}`);
-//   connectToMongo();
-// })
-
-async function startServer() {
-  try {
-    const mongoClient = await connectToMongo();
-    app.locals.mongoClient = mongoClient; // Make the MongoDB client available to other parts of the application
-    app.listen(port, () => {
-      console.debug(`Server listening on port ${port}`);
-    });
-  } catch (error) {
-    console.error('Error starting the server:', error);
-    process.exit(1); // Exit the application if there's an error
-  }
-}
-
-startServer(); 
-
-
+app.listen(port, () => {
+  console.debug(`Server listening on port ${port}`);
+});

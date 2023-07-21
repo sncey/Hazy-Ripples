@@ -3,6 +3,7 @@ const routes = express.Router();
 const userController = require('../controllers/user');
 const authentication = require('../middleware/authentication');
 
+routes.get('/', userController.getsignin);
 routes.post('/signin', userController.postSignin);
 routes.post('/signup', userController.postSignup);
 //TODO: ENABLE GOOGLE SIGNIN ROUTE
