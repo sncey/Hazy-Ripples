@@ -3,21 +3,24 @@ const bcrypt = require('bcrypt');
 
 const userSchema = mongoose.Schema({
     username: {
-      type: String,
+      type: String ,
       required: true,
       unique: true,
     },
     firstname: {
-      type: String,
+      type: String ,
       required: true,
+      default: " "
     },
     lastname: {
-      type: String,
+      type: String ,
       required: true,
+      default: {}
     },
     password_hash: {
-      type: String,
+      type: String ,
       required: true,
+      default: {}
     },
     email: {
         type: String,
@@ -25,18 +28,21 @@ const userSchema = mongoose.Schema({
         unique: true,
     },
     phoneNumber: {
-      type: Number,
+      type: Number ,
       required: true,
       unique: true,
+      default: {}
   },
     age: {
-        type: Number,
+        type: Number ,
         required: true,
+        default: {}
     },
     gender: {
-      type: String,
-      enum: ['male', 'female', 'other'],
+      type: String || null,
+      enum: ['male', 'female', 'not-specified'],
       required: true,
+      default: {}
     },
     registered_at: {
       type: Date,
@@ -55,10 +61,14 @@ const userSchema = mongoose.Schema({
       type: String,
       required: false, 
       // unique: true
-    }
+    }, 
+    // verified : {
+    //   type: Boolean,
+    //   default : false,
+    // }
   });
 
-  userSchema.set('autoCreate', true);
+  // userSchema.set('autoCreate', true);
 
 userSchema.virtual('fullname').get(function () {
   if (!this.firstname) {

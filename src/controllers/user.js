@@ -29,6 +29,7 @@ userController.getsignin = (req, res) => {
 
 //TODO: ADD GOOGLE SIGNIN
 userController.googleSignin = (req, res) => {  
+    
 };
 
 userController.postSignin =  async (req, res) => {
@@ -70,6 +71,7 @@ userController.postSignup = async (req, res) => {
         age,
         gender,
         avatar,
+        googleId
     } = req.body;
     try {
         if (password !== confirmPassword) {
@@ -123,8 +125,8 @@ userController.updateProfile = async (req, res) => {
     } catch (err) {
         checkErorrCode(err,res)
     }
-
-};
+    //TODO: configure function to avoid users with googleId to change their email/password, only general credentials
+}; 
 
 userController.deleteProfile = async (req, res) => {
     const user = req.user
