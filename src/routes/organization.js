@@ -18,7 +18,12 @@ routes.post("/create-account", OrganizationController.createAccount);
 routes.post("/login", OrganizationController.login);
 
 // Create an event for the organization
-routes.post("/create-event", OrganizationController.createEvent);
+routes.post(
+  "/create-event",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.createEvent
+);
 
 // Get all events created by the organization
 routes.get("/:organizationId/events", OrganizationController.getMyEvents);
@@ -26,18 +31,26 @@ routes.get("/:organizationId/events", OrganizationController.getMyEvents);
 // Update an event created by the organization
 routes.put(
   "/:organizationId/events/:eventId",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  authentication.isEventOwner,
   OrganizationController.updateEvent
 );
 
 // Delete an event created by the organization
 routes.delete(
   "/:organizationId/events/:eventId",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  authentication.isEventOwner,
   OrganizationController.deleteEvent
 );
 
 // Update organization details
 routes.put(
   "/:organizationId/update-account",
+  authentication.authMiddleware,
+  authentication.isOrganization,
   OrganizationController.updateAccount
 );
 

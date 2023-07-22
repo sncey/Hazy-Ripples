@@ -215,11 +215,36 @@ organizationController.deleteEvent = async (req, res) => {
 };
 
 organizationController.updateAccount = async (req, res) => {
-  // Implement update account logic here
-};
+  try {
+    const { organizationId } = req.params;
+    const { name, email, description, phone_number, image } = req.body;
 
-organizationController.deactivateAccount = async (req, res) => {
-  // Implement deactivate account logic here
+    // Check if the organization exists
+    const organization = await OrganizationModel.findById(organizationId);
+    if (!organization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+
+    // Update account details
+    if (name) organization.name = name;
+    if (email) organization.email = email;
+    if (description) organization.description = description;
+    if (phone_number) organization.phone_number = phone_number;
+    if (image) organization.image = image;
+
+    // Save the updated organization details
+    await organization.save();
+
+    res.json({
+      message: "Organization account updated successfully",
+      organization,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while updating organization account",
+      error,
+    });
+  }
 };
 
 organizationController.getAttendingUsers = async (req, res) => {
