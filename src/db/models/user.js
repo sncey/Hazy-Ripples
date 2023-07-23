@@ -1,74 +1,60 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
 
 const userSchema = mongoose.Schema({
-    username: {
-      type: String ,
-      required: true,
-      unique: true,
-    },
-    firstname: {
-      type: String ,
-      required: true,
-      default: " "
-    },
-    lastname: {
-      type: String ,
-      required: true,
-      default: {}
-    },
-    password_hash: {
-      type: String ,
-      required: true,
-      default: {}
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    phoneNumber: {
-      type: Number ,
-      required: true,
-      unique: true,
-      default: {}
+  username: {
+    type: String ,
+    required: true,
+    unique: true,
   },
-    age: {
-        type: Number ,
-        required: true,
-        default: {}
-    },
-    gender: {
-      type: String || null,
-      enum: ['male', 'female', 'not-specified'],
+  firstname: {
+    type: String ,
+    required: true,
+  },
+  lastname: {
+    type: String ,
+    required: true,
+  },
+  email: {
+      type: String,
       required: true,
-      default: {}
+      unique: true,
+  },
+  phoneNumber: {
+    type: Number ,
+    required: true,
+    unique: true,
+  },
+  birthday: {
+    type: Date ,
+    required: true,
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'not-specified'],
+    required: true,
+  },
+  registered_at: {
+    type: Date,
+    default: Date.now,
+  },
+  avatar: {
+    type: String,
+  },
+  events: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
     },
-    registered_at: {
-      type: Date,
-      default: Date.now,
-    },
-    avatar: {
-      type: String,
-    },
-    events: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Event',
-      },
-    ],
-    googleId : {
-      type: String,
-      required: false, 
-      // unique: true
-    }, 
-    // verified : {
-    //   type: Boolean,
-    //   default : false,
-    // }
-  });
+  ],
+  googleId : {
+    type: String,
+    required: false, 
+    unique: true,
+    sparse: true
+  }, 
+});
 
-  // userSchema.set('autoCreate', true);
+// userSchema.set('autoCreate', true);
 
 userSchema.virtual('fullname').get(function () {
   if (!this.firstname) {
@@ -86,16 +72,11 @@ function validateEmail(email) {
 }
 
 // Age validation function
-function validateAge(age) {
-  return age >= 18;
+function validateAge(birthday) {
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+  return birthday <= eighteenYearsAgo;
 }
-
-// Password validation function
-function validatePasswordStrength(password) {
-  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-  return passwordRegex.test(password);
-}
-
 
 // userSchema.pre('save', async function (next) {
 //   if (this.isModified('password_hash') || this.isNew) {
@@ -126,28 +107,12 @@ userSchema.pre('save', async function (next) {
       return next(new Error('Invalid email format.'));
     }
   }
-
-  if (this.isModified('age') || this.isNew) {
+  if (this.isModified('birthday') || this.isNew) {
     // Validate the age
-    if (!validateAge(this.age)) {
+    if (!validateAge(this.birthday)) {
       return next(new Error('Age must be at least 18.'));
     }
   }
-
-  if (this.isModified('password_hash') || this.isNew) {
-    // Validate the password
-    if (!validatePasswordStrength(this.password_hash)) {
-      return next(
-        new Error(
-          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
-        )
-      );
-    }
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
-    this.password_hash = hashedPassword;
-  }
-
   next();
 });
 
@@ -164,9 +129,12 @@ age fields are modified. If any of the validations fail,
 we return an error using next(new Error(...)), which will 
 prevent the user from being saved.
 */
-userSchema.methods.comparePassword = function (password) {
-  return bcrypt.compare(password, this.password_hash);
-};
+userSchema.virtual('account', {
+  ref: 'Account', // Reference to the Accounts collection
+  localField: '_id',
+  foreignField: 'user',
+  justOne: true, // As it's a one-to-one relationship
+});
 
 userSchema.set('toObject', { virtuals: true });
 userSchema.set('toJSON', { virtuals: true });

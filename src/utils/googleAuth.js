@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const UserModel = require('../db/models/user');
 const sendEmail = require('./email');
+const welcomeTemplate = require('../emailTemplates/welcome');
+require("dotenv").config();
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -77,6 +79,58 @@ passport.deserializeUser((id, done) => {
 //   )
 // );
 
+const generateJWT = (user) => { 
+  return jwt.sign(
+      {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          exp: Math.floor(Date.now() / 1000) + 1209600,
+          iat: Math.floor(Date.now() / 1000), // Issued at date
+      },
+      process.env.JWT_SECRET
+  );
+}
+
+const dataRequest = async (accessToken,personFields) => {
+  const  url = `https://people.googleapis.com/v1/people/me?personFields=${personFields}&key=${process.env.GOOGLE_PEOPLE_API_KEY}&access_token=${accessToken}`
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok.');
+    }
+    return await response.json();
+  } catch (error) {
+    console.log('Error fetching data:', error);
+  }
+  
+}
+
+const getbirthDay = async (accessToken) => {
+  const data = await dataRequest(accessToken,"birthdays");
+  const dateObject = data.birthdays[0]?.date;
+  const formattedDate = `${dateObject.year}-${dateObject.month.toString().padStart(2, '0')}-${dateObject.day.toString().padStart(2, '0')}`;
+  return formattedDate;
+}
+
+const getPhoneNumber = async (accessToken) => {
+  const data = await dataRequest(accessToken,"phoneNumbers");
+  const phoneNumberValue = data.phoneNumbers[0]?.canonicalForm;
+  return phoneNumberValue;
+}
+
+const getGender = async (accessToken) => {
+  const data = await dataRequest(accessToken,"genders")
+  const genderObject = data.genders[0]?.value;
+  return genderObject;
+}
+
 passport.use(
   new GoogleStrategy(
     {
@@ -88,22 +142,14 @@ passport.use(
       try {
         // Check if the user exists based on their Google ID
         const existingUser = await UserModel.findOne({ googleId: profile.id });
-
         if (existingUser) {
           // User already exists, generate token and return
-          const token = jwt.sign(
-            {
-              googleId: existingUser.id,
-              username: existingUser.username,
-              email: existingUser.email,
-              exp: Math.floor(Date.now() / 1000) + 1209600, // 14 days expiration
-              iat: Math.floor(Date.now() / 1000), // Issued at date
-            },
-            process.env.JWT_SECRET
-          );
-
+          const token = await generateJWT(existingUser);
           return done(null, { user: existingUser, token });
         }
+        const birthday = await getbirthDay(accessToken);
+        const phoneNumber = await getPhoneNumber(accessToken);
+        const gender = await getGender(accessToken);
 
         // User doesn't exist, create a new user and save to the database
         const newUser = new UserModel({
@@ -111,28 +157,17 @@ passport.use(
           email: profile.emails[0].value, // Make sure to check if profile.emails is not empty before accessing index 0
           googleId: profile.id,
           avatar: profile.photos[0]?.value || null, // Make sure to check if profile.photos is not empty before accessing index 0
-          // You can set other fields based on your data model here
-          firstname: "null",
-          lastname: "null",
-          password_hash: "nuL1nuL1.",
-          phoneNumber: 20,
-          age: 20,
-          gender: "not-specified",
+          firstname: profile._json.given_name,
+          lastname: profile._json.family_name,
+          phoneNumber: phoneNumber || "00000000000",
+          gender: gender,
+          birthday: birthday,
         });
-
         await newUser.save();
 
-        const token = jwt.sign(
-          {
-            id: newUser.id,
-            username: newUser.username,
-            email: newUser.email,
-            exp: Math.floor(Date.now() / 1000) + 1209600, // 14 days expiration
-            iat: Math.floor(Date.now() / 1000), // Issued at date
-          },
-          process.env.JWT_SECRET
-        );
-
+        const token = await generateJWT(newUser);
+        const emailText = welcomeTemplate(newUser.username);
+        sendEmail(email, 'Welcome onboard', emailText);
         return done(null, { user: newUser, token });
       } catch (error) {
         console.error('Error with Google OAuth:', error);

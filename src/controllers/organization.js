@@ -48,6 +48,7 @@ const organizationController = {};
 //         const { id } = req.params;
 //         const organization = await
 
+
 organizationController.login = async (req, res) => {
   try {
     const { email, password } = req.body;
