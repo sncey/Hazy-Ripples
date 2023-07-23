@@ -1,5 +1,10 @@
 const UserModel = require('../db/models/user');
+const AccountModel = require('../db/models/account');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/email');
+const resetPasswordTemplate = require('../emailTemplates/resetPassword');
+const welcomeTemplate = require('../emailTemplates/welcome');
+const account = require('../db/models/account');
 const userController = {};
 
 const generateJWT = (user,jwtExp) => { 
@@ -23,9 +28,8 @@ const checkErorrCode = (err,res) => {
     return res.status(400).json({ error: err.message });
 }
 
-
-//TODO: ADD GOOGLE SIGNIN
-userController.googleSignin = (req, res) => {  
+userController.getsignin = (req, res) => {
+    res.json({message:'signin'});
 };
 
 userController.postSignin =  async (req, res) => {
@@ -34,13 +38,18 @@ userController.postSignin =  async (req, res) => {
     try {
         const user = await UserModel.findOne({
             $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
-          });
+          }).populate('account');;
         if (!user) {
             return res
             .status(400)
             .json({ error: 'Wrong username or password' });
         }
-        const passwordMatches = await user.comparePassword(password, user.password_hash);
+        if(!user.account){
+            return res
+            .status(400)
+            .json({ error: 'Couldn\'t find your account' });
+        }
+        const passwordMatches = await user.account.comparePassword(password, user.password_hash);
         if (!passwordMatches) {
             return res
             .status(400)
@@ -64,9 +73,9 @@ userController.postSignup = async (req, res) => {
         confirmPassword,
         phoneNumber,
         email,
-        age,
+        birthday,
         gender,
-        avatar,
+        avatar
     } = req.body;
     try {
         if (password !== confirmPassword) {
@@ -85,13 +94,30 @@ userController.postSignup = async (req, res) => {
             firstname,
             lastname,
             phoneNumber,
-            password_hash: password,
             email,
-            age,
+            phoneNumber,
+            birthday,
             gender,
             avatar,
         });
+        try {
+            // Save the user
+            user = await user.save();
+            const account = new AccountModel({
+            user: user._id,
+            password_hash: password,
+            });
+            // Save the account
+            await account.save();
+        } catch (err) {
+            // Handle the error during account creation
+            await user.deleteOne(); // Rollback the user creation if account creation fails
+            throw err;
+        }
+        
         const token = await generateJWT(user,jwtExp);
+        const emailText = welcomeTemplate(user.username);
+        sendEmail(email, 'Welcome onboard', emailText);
         res.cookie('jwt', token, { httpOnly: true});
         res.json(token);
     } catch (err) {
@@ -102,40 +128,30 @@ userController.postSignup = async (req, res) => {
 userController.updateProfile = async (req, res) => {
     const user = req.user;
     const {
-        username,
-        firstname,
-        lastname,
         password,
         confirmPassword,
-        age,
-        gender,
-        avatar,
     } = req.body;
     try{
-        // const updatedUser = await UserModel.findById(user.id);
         if (password !== confirmPassword) {
             return res
             .status(400)
             .json({ error: 'passwords do not match' });
         }
-        findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true});
+        const updatedUser = await UserModel.findByIdAndUpdate(user.id, {$set: req.body}, {new: true});
         if (!updatedUser) {
-          return res.status(404).json({message:'User not found'});
+            return res.status(404).json({message:'User not found'});
         }
-        // updatedUser.username = username;
-        // updatedUser.firstname = firstname;
-        // updatedUser.lastname = lastname;
-        // updatedUser.age = age;
-        // updatedUser.gender=gender;
-        // updatedUser.avatar = avatar;
-        // updatedUser.password_hash = password;
-        // await updatedUser.save();
+        const updatedAccount = await AccountModel.findOne({user: user.id});
+        if(updatedAccount){
+            updatedAccount.password_hash = password;
+            await updatedAccount.save();
+        }
         res.json({message:'User updated successfully'});
     } catch (err) {
         checkErorrCode(err,res)
     }
-
-};
+    //TODO: configure function to avoid users with googleId to change their email/password, only general credentials
+}; 
 
 userController.deleteProfile = async (req, res) => {
     const user = req.user
@@ -144,6 +160,7 @@ userController.deleteProfile = async (req, res) => {
         if (!deletedUser) {
           return res.status(422).json({message:'Blog post not found'});
         }
+        await AccountModel.findOneAndDelete({user: user.id});
         res.clearCookie('jwt');
         res.redirect('http://localhost:3000/api-docs');
     } catch (err) {
@@ -168,6 +185,48 @@ userController.profile = async (req, res) => {
             return res.status(404).json({message:'User not found'});
         }
         res.json(profile);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+userController.forgotPassword = async (req, res) => {
+    const {email} = req.body;
+    try {
+        const user = await UserModel.findOne({email});
+        if (!user) {
+            return res.status(404).json({message:'User not found'});
+        }
+        const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '10m' });
+        const emailText = resetPasswordTemplate(token,user.username);
+        sendEmail(email, 'Reset Password', emailText);
+        res.json({message:'Email sent successfully',jwttoken:token});
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+userController.resetPassword = async (req, res) => {
+    const {password, confirmPassword} = req.body;
+    const token = req.query.token;
+    try {
+        if (password !== confirmPassword) {
+            return res
+            .status(400)
+            .json({ error: 'passwords do not match' });
+        }
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const email = decodedToken.email;
+        const user = await UserModel.findOne({ email }).populate('account');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (!user.account) {
+            return res.status(404).json({ message: 'Sign in with google' });
+        }
+        user.account.password_hash = password;
+        await user.account.save();
+        res.json({message:'Password updated successfully'});
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
