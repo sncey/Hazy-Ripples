@@ -27,26 +27,21 @@ const organizationController = {};
 //     }
 // };
 
-// organizationController.createOrganization = async (req, res) => {
-//     try {
-//         const organization = new OrganizationModel(req.body);
-//         await organization.save();
-//         res.json({
-//             message: 'Organization successfully created',
-//             organization
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             message: 'Error while creating organization',
-//             error
-//         });
-//     }
-// };
-
-// organizationController.updateOrganization = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const organization = await
+organizationController.createAccount = async (req, res) => {
+    try {
+        const organization = new OrganizationModel(req.body);
+        await organization.save();
+        res.json({
+            message: 'Organization successfully created',
+            organization
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error while creating organization',
+            error
+        });
+    }
+};
 
 
 organizationController.login = async (req, res) => {
