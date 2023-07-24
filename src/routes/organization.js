@@ -12,6 +12,8 @@ const authentication = require("../middleware/authentication");
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
+
+//TODO: This routes causing an error because callback function looks undefined
 routes.post("/create-account", OrganizationController.createAccount);
 
 // Login to the organization account

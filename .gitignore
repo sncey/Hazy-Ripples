@@ -25,3 +25,4 @@ yarn-error.log*
 /.husky
 
 src/controllers/temp.js
+src/swagger.js
