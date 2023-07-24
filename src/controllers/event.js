@@ -10,34 +10,47 @@ eventController.getAllEvents = async (req, res) => {
   }
 };
 
-eventController.getAllEventCategories = async (req, res) => {
+// Filter events by category
+eventController.filterEventsByCategory = async (req, res) => {
   try {
-    const categories = await EventModel.distinct("category");
-    res.json(categories);
+    const { category } = req.query;
+    const events = await EventModel.find({ category });
+    res.json(events);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error while getting event categories", error });
+    res.status(500).json({
+      message: "Error while filtering events by category",
+      error,
+    });
   }
 };
 
-eventController.getAllEventLocations = async (req, res) => {
+// Filter events by location
+eventController.filterEventsByLocation = async (req, res) => {
   try {
-    const locations = await EventModel.distinct("location");
-    res.json(locations);
+    const { location } = req.query;
+    const events = await EventModel.find({ location });
+    res.json(events);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error while getting event locations", error });
+    res.status(500).json({
+      message: "Error while filtering events by location",
+      error,
+    });
   }
 };
 
-eventController.getAllEventDates = async (req, res) => {
+// Filter events by date
+eventController.filterEventsByDate = async (req, res) => {
   try {
-    const dates = await EventModel.distinct("start_date");
-    res.json(dates);
+    const { date } = req.query;
+    const events = await EventModel.find({
+      start_date: { $gte: new Date(date) },
+    });
+    res.json(events);
   } catch (error) {
-    res.status(500).json({ message: "Error while getting event dates", error });
+    res.status(500).json({
+      message: "Error while filtering events by date",
+      error,
+    });
   }
 };
 

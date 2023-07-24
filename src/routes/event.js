@@ -9,10 +9,19 @@ const authentication = require("../middleware/authentication");
 // routes.put('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.updateEvent);
 // routes.delete('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.deleteEvent);
 
+// Get all events
 routes.get("/", eventController.getAllEvents);
-routes.get("/categories", eventController.getAllEventCategories);
-routes.get("/locations", eventController.getAllEventLocations);
-routes.get("/dates", eventController.getAllEventDates);
+
+// Filter events by category
+routes.get("/filter/category", eventController.filterEventsByCategory);
+
+// Filter events by location
+routes.get("/filter/location", eventController.filterEventsByLocation);
+
+// Filter events by date
+routes.get("/filter/date", eventController.filterEventsByDate);
+
+// Search for events
 routes.get("/search", eventController.searchEventsByQuery);
 
 module.exports = routes;
