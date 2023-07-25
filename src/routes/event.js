@@ -12,6 +12,26 @@ const authentication = require("../middleware/authentication");
 // Get all events
 routes.get("/", eventController.getAllEvents);
 
+// Get all expired events
+routes.get("/events/expired", eventController.getExpiredEvents);
+
+// Get ordered events (newest or oldest)
+routes.get("/events/ordered", eventController.getOrderedEvents);
+
+// Attend an event (authentication required)
+routes.post(
+  "/events/attend",
+  authenticationMiddleware,
+  eventController.attendEvent
+);
+
+// Unattend an event (authentication required)
+routes.post(
+  "/events/unattend",
+  authenticationMiddleware,
+  eventController.unattendEvent
+);
+
 // Filter events by category
 routes.get("/filter/category", eventController.filterEventsByCategory);
 
