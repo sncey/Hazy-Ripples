@@ -6,7 +6,7 @@ const apiRoutes = require("./routes/index");
 const cookieParser = require("cookie-parser");
 require("./db/connection");
 require("dotenv").config();
-const swaggerOptions = require("./swaggerOptions"); // Import the Swagger options from the separate file
+const swaggerOptions = require("./swagger/swaggerOptions"); // Import the Swagger options from the separate file
 
 
 const port = process.env.NODE_LOCAL_PORT || 3000;

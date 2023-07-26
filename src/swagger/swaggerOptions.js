@@ -26,16 +26,9 @@ const swaggerOptions = {
       ],
     },
     components: {
-      schemas: {
-        User: {
-          $ref: "#/components/schemas/User", // Reference to the User schema defined in the JSDoc comments
-        },
-        Organization: {
-          $ref: "#/components/schemas/Organization", // Reference to the User schema defined in the JSDoc comments
-        },
-      },
+      
     },
-    apis: ["./src/routes/index.js", "./src/db/models/*.js"],
+    apis: ["./src/swagger/controllers/*.js", "./src/swagger/models/*.js"],
   };
 
 const specs = swaggerJsdoc(swaggerOptions);
