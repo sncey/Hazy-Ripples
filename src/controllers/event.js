@@ -173,7 +173,7 @@ eventController.unattendEvent = async (req, res) => {
 eventController.filterEventsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
-    const events = await EventModel.find({ category });
+    const events = await EventModel.find({ category, expired: false });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -187,7 +187,7 @@ eventController.filterEventsByCategory = async (req, res) => {
 eventController.filterEventsByLocation = async (req, res) => {
   try {
     const { location } = req.query;
-    const events = await EventModel.find({ location });
+    const events = await EventModel.find({ location, expired: false });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -197,13 +197,21 @@ eventController.filterEventsByLocation = async (req, res) => {
   }
 };
 
-// Filter events by date
 eventController.filterEventsByDate = async (req, res) => {
   try {
-    const { date } = req.query;
+    const { startDate, endDate } = req.query;
+
+    // Create JavaScript Date objects from the date strings
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+    endDateTime.setDate(endDateTime.getDate() + 1); // Add one day to include events on the end date
+
     const events = await EventModel.find({
-      start_date: { $gte: new Date(date) },
+      start_date: { $gte: startDateTime },
+      end_date: { $lt: endDateTime },
+      expired: false,
     });
+
     res.json(events);
   } catch (error) {
     res.status(500).json({
