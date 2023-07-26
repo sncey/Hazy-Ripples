@@ -1,12 +1,171 @@
 const EventModel = require("../db/models/event");
+const UserModel = require("../db/models/user");
 const eventController = {};
 
-eventController.getAllEvents = async (req, res) => {
+// eventController.getAllEvents = async (req, res) => {
+//   try {
+//     const events = await EventModel.find();
+//     res.json(events);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error while getting events", error });
+//   }
+// };
+
+// // Get all non-expired events
+// eventController.getAllEvents = async (req, res) => {
+//   try {
+//     const currentTime = new Date();
+//     const events = await EventModel.find({
+//       end_date: { $gt: currentTime },
+//       expired: false,
+//     }).sort({ start_date: 1 }); // Sort by start_date in ascending order (nearest future first)
+//     res.json(events);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+// Get only non-expired events
+eventController.getEvents = async (req, res) => {
   try {
-    const events = await EventModel.find();
+    // Filter out expired events by adding { expired: false } to the query
+    const events = await EventModel.find({ expired: false }).populate(
+      "organizer"
+    );
     res.json(events);
   } catch (error) {
-    res.status(500).json({ message: "Error while getting events", error });
+    res.status(500).json({ error: "Error while fetching events" });
+  }
+};
+
+// Get all expired events
+eventController.getExpiredEvents = async (req, res) => {
+  try {
+    const currentTime = new Date();
+    const events = await EventModel.find({
+      end_date: { $lt: currentTime },
+      expired: true,
+    }).sort({ start_date: -1 }); // Sort by start_date in descending order (latest events first)
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// // Get ordered events (newest or oldest based on the query)
+// eventController.getOrderedEvents = async (req, res) => {
+//   try {
+//     const { order } = req.query;
+//     const currentTime = new Date();
+
+//     let events;
+//     if (order === "newest") {
+//       events = await EventModel.find({
+//         end_date: { $gt: currentTime },
+//         expired: false,
+//       }).sort({ start_date: -1 }); // Sort by start_date in descending order (newest events first)
+//     } else if (order === "oldest") {
+//       events = await EventModel.find({
+//         end_date: { $gt: currentTime },
+//         expired: false,
+//       }).sort({ start_date: 1 }); // Sort by start_date in ascending order (oldest events first)
+//     } else {
+//       return res.status(400).json({ error: "Invalid order query parameter" });
+//     }
+
+//     res.json(events);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+// Get ordered events (newest or oldest based on the query)
+eventController.getOrderedEvents = async (req, res) => {
+  try {
+    const { order } = req.params;
+    const query = { expired: false };
+
+    // Add sorting criteria to the query based on 'order' parameter
+    const sortingCriteria =
+      order === "newest" ? { start_date: -1 } : { start_date: 1 };
+    const events = await EventModel.find(query)
+      .sort(sortingCriteria)
+      .populate("organizer");
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: "Error while fetching events" });
+  }
+};
+
+// Attend an event
+eventController.attendEvent = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const user = req.user;
+
+    // Check if the event exists and is not expired
+    const event = await EventModel.findById(eventId);
+    if (!event || event.expired) {
+      return res
+        .status(404)
+        .json({ message: "Event not found or has already expired" });
+    }
+
+    // Check if the user is already attending the event
+    if (user.events.includes(eventId)) {
+      return res
+        .status(400)
+        .json({ message: "You are already attending this event" });
+    }
+
+    // Add the event to the user's events array
+    user.events.push(eventId);
+    await user.save();
+
+    // Add the user to the event's attendees array
+    event.attendees.push(user._id);
+    await event.save();
+
+    res.json({ message: "You are now attending the event", event });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Unattend an event
+eventController.unattendEvent = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const user = req.user;
+
+    // Check if the event exists and is not expired
+    const event = await EventModel.findById(eventId);
+    if (!event || event.expired) {
+      return res
+        .status(404)
+        .json({ message: "Event not found or has already expired" });
+    }
+
+    // Check if the user is attending the event
+    if (!user.events.includes(eventId)) {
+      return res
+        .status(400)
+        .json({ message: "You are not attending this event" });
+    }
+
+    // Remove the event from the user's events array
+    user.events = user.events.filter((eId) => eId.toString() !== eventId);
+    await user.save();
+
+    // Remove the user from the event's attendees array
+    event.attendees = event.attendees.filter(
+      (userId) => userId.toString() !== user._id.toString()
+    );
+    await event.save();
+
+    res.json({ message: "You have unattended the event", event });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
