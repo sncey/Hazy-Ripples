@@ -10,7 +10,7 @@ const authentication = require("../middleware/authentication");
 // routes.delete('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.deleteEvent);
 
 // Get all events
-routes.get("/", eventController.getAllEvents);
+routes.get("/", eventController.getEvents);
 
 // Get all expired events
 routes.get("/events/expired", eventController.getExpiredEvents);
@@ -21,14 +21,14 @@ routes.get("/events/ordered", eventController.getOrderedEvents);
 // Attend an event (authentication required)
 routes.post(
   "/events/attend",
-  authenticationMiddleware,
+  authentication.authMiddleware,
   eventController.attendEvent
 );
 
 // Unattend an event (authentication required)
 routes.post(
   "/events/unattend",
-  authenticationMiddleware,
+  authentication.authMiddleware,
   eventController.unattendEvent
 );
 
