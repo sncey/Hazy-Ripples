@@ -32,27 +32,18 @@ eventController.getExpiredEvents = async (req, res) => {
 // Get ordered events (newest or oldest based on the query)
 eventController.getOrderedEvents = async (req, res) => {
   try {
-    const { order } = req.query;
-    const currentTime = new Date();
+    const { order } = req.params;
+    const query = { expired: false };
 
-    let events;
-    if (order === "newest") {
-      events = await EventModel.find({
-        end_date: { $gt: currentTime },
-        expired: false,
-      }).sort({ start_date: -1 }); // Sort by start_date in descending order (newest events first)
-    } else if (order === "oldest") {
-      events = await EventModel.find({
-        end_date: { $gt: currentTime },
-        expired: false,
-      }).sort({ start_date: 1 }); // Sort by start_date in ascending order (oldest events first)
-    } else {
-      return res.status(400).json({ error: "Invalid order query parameter" });
-    }
-
+    // Add sorting criteria to the query based on 'order' parameter
+    const sortingCriteria =
+      order === "newest" ? { start_date: -1 } : { start_date: 1 };
+    const events = await EventModel.find(query)
+      .sort(sortingCriteria)
+      .populate("organizer");
     res.json(events);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ error: "Error while fetching events" });
   }
 };
 
@@ -199,12 +190,14 @@ eventController.filterEventsByDate = async (req, res) => {
 eventController.searchEventsByQuery = async (req, res) => {
   try {
     const { query } = req.query;
+
+    // Create a case-insensitive regular expression with the provided query
+    const regex = new RegExp(query, "i");
+
     const events = await EventModel.find({
-      $or: [
-        { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-      ],
+      $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
     });
+
     res.json(events);
   } catch (error) {
     res
