@@ -2,29 +2,6 @@ const EventModel = require("../db/models/event");
 const UserModel = require("../db/models/user");
 const eventController = {};
 
-// eventController.getAllEvents = async (req, res) => {
-//   try {
-//     const events = await EventModel.find();
-//     res.json(events);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error while getting events", error });
-//   }
-// };
-
-// // Get all non-expired events
-// eventController.getAllEvents = async (req, res) => {
-//   try {
-//     const currentTime = new Date();
-//     const events = await EventModel.find({
-//       end_date: { $gt: currentTime },
-//       expired: false,
-//     }).sort({ start_date: 1 }); // Sort by start_date in ascending order (nearest future first)
-//     res.json(events);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 // Get only non-expired events
 eventController.getEvents = async (req, res) => {
   try {
@@ -52,48 +29,48 @@ eventController.getExpiredEvents = async (req, res) => {
   }
 };
 
-// // Get ordered events (newest or oldest based on the query)
-// eventController.getOrderedEvents = async (req, res) => {
-//   try {
-//     const { order } = req.query;
-//     const currentTime = new Date();
-
-//     let events;
-//     if (order === "newest") {
-//       events = await EventModel.find({
-//         end_date: { $gt: currentTime },
-//         expired: false,
-//       }).sort({ start_date: -1 }); // Sort by start_date in descending order (newest events first)
-//     } else if (order === "oldest") {
-//       events = await EventModel.find({
-//         end_date: { $gt: currentTime },
-//         expired: false,
-//       }).sort({ start_date: 1 }); // Sort by start_date in ascending order (oldest events first)
-//     } else {
-//       return res.status(400).json({ error: "Invalid order query parameter" });
-//     }
-
-//     res.json(events);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 // Get ordered events (newest or oldest based on the query)
 eventController.getOrderedEvents = async (req, res) => {
   try {
-    const { order } = req.params;
-    const query = { expired: false };
+    const { order } = req.query;
+    const currentTime = new Date();
 
-    // Add sorting criteria to the query based on 'order' parameter
-    const sortingCriteria =
-      order === "newest" ? { start_date: -1 } : { start_date: 1 };
-    const events = await EventModel.find(query)
-      .sort(sortingCriteria)
-      .populate("organizer");
+    let events;
+    if (order === "newest") {
+      events = await EventModel.find({
+        end_date: { $gt: currentTime },
+        expired: false,
+      }).sort({ start_date: -1 }); // Sort by start_date in descending order (newest events first)
+    } else if (order === "oldest") {
+      events = await EventModel.find({
+        end_date: { $gt: currentTime },
+        expired: false,
+      }).sort({ start_date: 1 }); // Sort by start_date in ascending order (oldest events first)
+    } else {
+      return res.status(400).json({ error: "Invalid order query parameter" });
+    }
+
     res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const EventModel = require("../db/models/event");
+
+// Get event by ID
+eventController.getEventById = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const event = await EventModel.findById(eventId).populate("organizer");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.json(event);
   } catch (error) {
-    res.status(500).json({ error: "Error while fetching events" });
+    res.status(500).json({ error: "Error while fetching event" });
   }
 };
 

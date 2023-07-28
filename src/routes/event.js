@@ -3,12 +3,6 @@ const routes = express.Router();
 const eventController = require("../controllers/event");
 const authentication = require("../middleware/authentication");
 
-// routes.get('/', eventController.getEvents);
-// routes.get('/:id', eventController.getEvent); //get event by id
-// routes.post('/', authentication.authMiddleware, authentication.isOrganization , eventController.createEvent);
-// routes.put('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.updateEvent);
-// routes.delete('/:id', authentication.authMiddleware, authentication.isOrganization , authentication.isEventOwner,eventController.deleteEvent);
-
 // Get all events
 routes.get("/", eventController.getEvents);
 
@@ -17,6 +11,9 @@ routes.get("/expired", eventController.getExpiredEvents);
 
 // Get ordered events (newest or oldest)
 routes.get("/ordered", eventController.getOrderedEvents);
+
+// Get event by ID
+routes.get("/events/:id", eventController.getEventById);
 
 // Attend an event (authentication required)
 routes.post(
