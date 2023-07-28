@@ -135,11 +135,15 @@ eventController.unattendEvent = async (req, res) => {
   }
 };
 
-// Filter events by category
+// Filter events by category (case-insensitive)
 eventController.filterEventsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
-    const events = await EventModel.find({ category, expired: false });
+    const regex = new RegExp(category, "i"); // 'i' flag makes it case-insensitive
+    const events = await EventModel.find({
+      category: { $regex: regex },
+      expired: false,
+    });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -149,11 +153,15 @@ eventController.filterEventsByCategory = async (req, res) => {
   }
 };
 
-// Filter events by location
+// Filter events by location (case-insensitive)
 eventController.filterEventsByLocation = async (req, res) => {
   try {
     const { location } = req.query;
-    const events = await EventModel.find({ location, expired: false });
+    const regex = new RegExp(location, "i"); // 'i' flag makes it case-insensitive
+    const events = await EventModel.find({
+      location: { $regex: regex },
+      expired: false,
+    });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -163,6 +171,7 @@ eventController.filterEventsByLocation = async (req, res) => {
   }
 };
 
+// TODO: Filter events by date
 eventController.filterEventsByDate = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -190,19 +199,22 @@ eventController.filterEventsByDate = async (req, res) => {
 eventController.searchEventsByQuery = async (req, res) => {
   try {
     const { query } = req.query;
-
-    // Create a case-insensitive regular expression with the provided query
-    const regex = new RegExp(query, "i");
-
+    const regex = new RegExp(query, "i"); // 'i' flag makes it case-insensitive
     const events = await EventModel.find({
-      $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+      $or: [
+        { title: { $regex: regex } },
+        { description: { $regex: regex } },
+        { category: { $regex: regex } },
+        { location: { $regex: regex } },
+      ],
+      expired: false,
     });
-
     res.json(events);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error while searching for events", error });
+    res.status(500).json({
+      message: "Error while searching events by query",
+      error,
+    });
   }
 };
 
