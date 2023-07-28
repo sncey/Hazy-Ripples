@@ -13,7 +13,7 @@ routes.get("/expired", eventController.getExpiredEvents);
 routes.get("/ordered", eventController.getOrderedEvents);
 
 // Get event by ID
-routes.get("/events/:id", eventController.getEventById);
+routes.get("/:id", eventController.getEventById);
 
 // Attend an event (authentication required)
 routes.post(
