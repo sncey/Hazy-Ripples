@@ -56,8 +56,6 @@ eventController.getOrderedEvents = async (req, res) => {
   }
 };
 
-const EventModel = require("../db/models/event");
-
 // Get event by ID
 eventController.getEventById = async (req, res) => {
   try {
