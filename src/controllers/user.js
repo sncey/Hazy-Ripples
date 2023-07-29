@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/email');
 const resetPasswordTemplate = require('../emailTemplates/resetPassword');
 const welcomeTemplate = require('../emailTemplates/welcome');
-const account = require('../db/models/account');
 const userController = {};
 
 const generateJWT = (user,jwtExp) => { 
@@ -104,8 +103,8 @@ userController.postSignup = async (req, res) => {
             // Save the user
             user = await user.save();
             const account = new AccountModel({
-            user: user._id,
-            password_hash: password,
+                user: user._id,
+                password_hash: password,
             });
             // Save the account
             await account.save();
@@ -130,6 +129,13 @@ userController.updateProfile = async (req, res) => {
     const {
         password,
         confirmPassword,
+        phoneNumber,
+        birthday,
+        username,
+        firstname,
+        lastname,
+        gender,
+        avatar
     } = req.body;
     try{
         if (password !== confirmPassword) {
@@ -137,20 +143,29 @@ userController.updateProfile = async (req, res) => {
             .status(400)
             .json({ error: 'passwords do not match' });
         }
-        const updatedUser = await UserModel.findByIdAndUpdate(user.id, {$set: req.body}, {new: true});
+        const updatedUser = await UserModel.findById(user.id);
         if (!updatedUser) {
             return res.status(404).json({message:'User not found'});
         }
-        const updatedAccount = await AccountModel.findOne({user: user.id});
-        if(updatedAccount){
-            updatedAccount.password_hash = password;
-            await updatedAccount.save();
+        
+        updatedUser.username = username;
+        updatedUser.firstname = firstname;
+        updatedUser.lastname = lastname;
+        updatedUser.phoneNumber = phoneNumber;
+        updatedUser.birthday = birthday;
+        updatedUser.gender = gender;
+        updatedUser.avatar = avatar;
+
+        await updatedUser.save();
+        if(password && confirmPassword){
+            const updatedAccount = await AccountModel.findOne({user: user.id});
+            updatedAccount?.set('password_hash', password);
+            await updatedAccount?.save();
         }
         res.json({message:'User updated successfully'});
     } catch (err) {
         checkErorrCode(err,res)
     }
-    //TODO: configure function to avoid users with googleId to change their email/password, only general credentials
 }; 
 
 userController.deleteProfile = async (req, res) => {
