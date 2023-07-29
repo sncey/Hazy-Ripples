@@ -171,19 +171,28 @@ eventController.filterEventsByLocation = async (req, res) => {
   }
 };
 
-// TODO: Filter events by date
 eventController.filterEventsByDate = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    // Create JavaScript Date objects from the date strings
+    // Convert query parameters to JavaScript Date objects
     const startDateTime = new Date(startDate);
     const endDateTime = new Date(endDate);
     endDateTime.setDate(endDateTime.getDate() + 1); // Add one day to include events on the end date
 
+    // Check if the date formats are valid
+    if (isNaN(startDateTime) || isNaN(endDateTime)) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    // Convert dates to ISO 8601 format
+    const isoStartDate = startDateTime.toISOString();
+    const isoEndDate = endDateTime.toISOString();
+
+    // Filter events using explicit date comparison with ISO 8601 formatted dates
     const events = await EventModel.find({
-      start_date: { $gte: startDateTime },
-      end_date: { $lt: endDateTime },
+      start_date: { $gte: isoStartDate },
+      end_date: { $lt: isoEndDate },
       expired: false,
     });
 
@@ -198,23 +207,30 @@ eventController.filterEventsByDate = async (req, res) => {
 
 eventController.searchEventsByQuery = async (req, res) => {
   try {
-    const { query } = req.query;
-    const regex = new RegExp(query, "i"); // 'i' flag makes it case-insensitive
-    const events = await EventModel.find({
-      $or: [
-        { title: { $regex: regex } },
-        { description: { $regex: regex } },
-        { category: { $regex: regex } },
-        { location: { $regex: regex } },
-      ],
-      expired: false,
-    });
+    const { query, startDate } = req.query;
+    const lowerCaseQuery = query.toLowerCase();
+    const regex = new RegExp(lowerCaseQuery, "i"); // 'i' flag makes it case-insensitive
+
+    // Convert startDate to a Date object
+    const parsedStartDate = startDate ? new Date(startDate) : null;
+
+    let events;
+    if (parsedStartDate) {
+      events = await EventModel.find({
+        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+        start_date: { $gte: parsedStartDate }, // Filter events with start_date greater than or equal to parsedStartDate
+      });
+    } else {
+      events = await EventModel.find({
+        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+      });
+    }
+
     res.json(events);
   } catch (error) {
-    res.status(500).json({
-      message: "Error while searching events by query",
-      error,
-    });
+    res
+      .status(500)
+      .json({ message: "Error while searching for events", error });
   }
 };
 
