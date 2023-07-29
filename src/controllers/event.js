@@ -1,7 +1,6 @@
 const EventModel = require("../db/models/event");
 const UserModel = require("../db/models/user");
 const eventController = {};
-
 // eventController.getAllEvents = async (req, res) => {
 //   try {
 //     const events = await EventModel.find();
@@ -10,7 +9,6 @@ const eventController = {};
 //     res.status(500).json({ message: "Error while getting events", error });
 //   }
 // };
-
 // // Get all non-expired events
 // eventController.getAllEvents = async (req, res) => {
 //   try {
@@ -24,7 +22,6 @@ const eventController = {};
 //     res.status(500).json({ error: err.message });
 //   }
 // };
-
 // Get only non-expired events
 eventController.getEvents = async (req, res) => {
   try {
@@ -37,7 +34,6 @@ eventController.getEvents = async (req, res) => {
     res.status(500).json({ error: "Error while fetching events" });
   }
 };
-
 // Get all expired events
 eventController.getExpiredEvents = async (req, res) => {
   try {
@@ -51,13 +47,11 @@ eventController.getExpiredEvents = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 // // Get ordered events (newest or oldest based on the query)
 // eventController.getOrderedEvents = async (req, res) => {
 //   try {
 //     const { order } = req.query;
 //     const currentTime = new Date();
-
 //     let events;
 //     if (order === "newest") {
 //       events = await EventModel.find({
@@ -72,19 +66,16 @@ eventController.getExpiredEvents = async (req, res) => {
 //     } else {
 //       return res.status(400).json({ error: "Invalid order query parameter" });
 //     }
-
 //     res.json(events);
 //   } catch (err) {
 //     res.status(500).json({ error: err.message });
 //   }
 // };
-
 // Get ordered events (newest or oldest based on the query)
 eventController.getOrderedEvents = async (req, res) => {
   try {
     const { order } = req.params;
     const query = { expired: false };
-
     // Add sorting criteria to the query based on 'order' parameter
     const sortingCriteria =
       order === "newest" ? { start_date: -1 } : { start_date: 1 };
@@ -96,13 +87,11 @@ eventController.getOrderedEvents = async (req, res) => {
     res.status(500).json({ error: "Error while fetching events" });
   }
 };
-
 // Attend an event
 eventController.attendEvent = async (req, res) => {
   try {
     const { eventId } = req.body;
     const user = req.user;
-
     // Check if the event exists and is not expired
     const event = await EventModel.findById(eventId);
     if (!event || event.expired) {
@@ -110,34 +99,28 @@ eventController.attendEvent = async (req, res) => {
         .status(404)
         .json({ message: "Event not found or has already expired" });
     }
-
     // Check if the user is already attending the event
     if (user.events.includes(eventId)) {
       return res
         .status(400)
         .json({ message: "You are already attending this event" });
     }
-
     // Add the event to the user's events array
     user.events.push(eventId);
     await user.save();
-
     // Add the user to the event's attendees array
     event.attendees.push(user._id);
     await event.save();
-
     res.json({ message: "You are now attending the event", event });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 // Unattend an event
 eventController.unattendEvent = async (req, res) => {
   try {
     const { eventId } = req.body;
     const user = req.user;
-
     // Check if the event exists and is not expired
     const event = await EventModel.findById(eventId);
     if (!event || event.expired) {
@@ -145,30 +128,25 @@ eventController.unattendEvent = async (req, res) => {
         .status(404)
         .json({ message: "Event not found or has already expired" });
     }
-
     // Check if the user is attending the event
     if (!user.events.includes(eventId)) {
       return res
         .status(400)
         .json({ message: "You are not attending this event" });
     }
-
     // Remove the event from the user's events array
     user.events = user.events.filter((eId) => eId.toString() !== eventId);
     await user.save();
-
     // Remove the user from the event's attendees array
     event.attendees = event.attendees.filter(
       (userId) => userId.toString() !== user._id.toString()
     );
     await event.save();
-
     res.json({ message: "You have unattended the event", event });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 // Filter events by category
 eventController.filterEventsByCategory = async (req, res) => {
   try {
@@ -182,7 +160,6 @@ eventController.filterEventsByCategory = async (req, res) => {
     });
   }
 };
-
 // Filter events by location
 eventController.filterEventsByLocation = async (req, res) => {
   try {
@@ -220,7 +197,6 @@ eventController.filterEventsByDate = async (req, res) => {
     });
   }
 };
-
 eventController.searchEventsByQuery = async (req, res) => {
   try {
     const { query } = req.query;
@@ -237,5 +213,4 @@ eventController.searchEventsByQuery = async (req, res) => {
       .json({ message: "Error while searching for events", error });
   }
 };
-
 module.exports = eventController;
