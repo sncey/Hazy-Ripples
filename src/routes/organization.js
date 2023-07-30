@@ -30,8 +30,8 @@ routes.delete(
   OrganizationController.deleteAccount
 );
 
-// Login to the organization account
-routes.post("/login", OrganizationController.login);
+// Signin to the organization account
+routes.post("/signin", OrganizationController.signin);
 
 // Create an event for the organization
 routes.post(

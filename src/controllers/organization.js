@@ -1,6 +1,24 @@
 const OrganizationModel = require("../db/models/organization");
 const EventModel = require("../db/models/event");
+const jwt = require("jsonwebtoken");
+const sendEmail = require("../utils/email");
+const resetPasswordTemplate = require("../emailTemplates/resetPassword");
+const welcomeTemplate = require("../emailTemplates/welcome");
+const organization = require("../db/models/organization");
+
 const organizationController = {};
+
+const generateJWT = (user, jwtExp) => {
+  return jwt.sign(
+    {
+      id: organization.id,
+      name: organization.name,
+      exp: jwtExp,
+      iat: Math.floor(Date.now() / 1000), // Issued at date
+    },
+    process.env.JWT_SECRET
+  );
+};
 
 // organizationController.getOrganizations = async (req, res) => {
 //     try {
@@ -15,31 +33,62 @@ const organizationController = {};
 // };
 
 organizationController.createAccount = async (req, res) => {
+  const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
+  const {
+    name,
+    email,
+    password,
+    confirmPassword,
+    description,
+    phoneNumber,
+    image,
+  } = req.body;
+
   try {
-    const organization = new OrganizationModel(req.body);
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    let organization = await OrganizationModel.findOne({ email });
+
+    if (organization) {
+      return res.status(400).json({ error: `${email} is already used` });
+    }
+
+    organization = await OrganizationModel.create({
+      name,
+      email,
+      password,
+      description,
+      phoneNumber,
+      image,
+    });
+    // Save the organization
     await organization.save();
-    res.json({
-      message: "Organization successfully created",
-      organization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while creating organization",
-      error,
-    });
+
+    const token = await generateJWT(organization, jwtExp);
+    const emailText = welcomeTemplate(organization.name);
+    sendEmail(email, "Welcome onboard", emailText);
+
+    res.cookie("jwt", token, { httpOnly: true });
+    res.json(token);
+  } catch (err) {
+    checkErorrCode(err, res);
   }
 };
 
 //Update organization account
 organizationController.updateAccount = async (req, res) => {
+  const organization = req.organization;
   try {
-    const { organizationId } = req.params;
     const { name, email, description, image, phone_number } = req.body;
 
     // Find the organization by ID
-    const organization = await OrganizationModel.findById(organizationId);
+    const updatedOrganization = await OrganizationModel.findById(
+      organization.id
+    );
 
-    if (!organization) {
+    if (!updatedOrganization) {
       return res.status(404).json({ error: "Organization not found" });
     }
 
@@ -66,13 +115,14 @@ organizationController.updateAccount = async (req, res) => {
 
 // Delete organization account
 organizationController.deleteAccount = async (req, res) => {
+  const organization = req.organization;
   try {
-    const { organizationId } = req.params;
-
     // Find the organization by ID
-    const organization = await OrganizationModel.findById(organizationId);
+    const deletedOrganization = await OrganizationModel.findById(
+      organization.id
+    );
 
-    if (!organization) {
+    if (!deletedOrganization) {
       return res.status(404).json({ error: "Organization not found" });
     }
 
@@ -87,31 +137,33 @@ organizationController.deleteAccount = async (req, res) => {
   }
 };
 
-organizationController.login = async (req, res) => {
+organizationController.signin = async (req, res) => {
+  const { emailOrUsername, password, rememberMe } = req.body;
+  const jwtExp = rememberMe
+    ? Math.floor(Date.now() / 1000) + 1209600
+    : Math.floor(Date.now() / 1000) + 86400; // 14 days expiration : 1 day expiration
   try {
-    const { email, password } = req.body;
-
-    // Find the organization by email
-    const organization = await OrganizationModel.findOne({ email });
-
-    // If the organization is not found, return an error
+    const organization = await OrganizationModel.findOne({
+      $or: [{ email: emailOrUsername }, { name: emailOrUsername }],
+    }).populate("account");
     if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
+      return res.status(400).json({ error: "Wrong username or password" });
     }
-
-    // Perform password validation here (You need to implement this logic based on your authentication system)
-    // For now, we are just checking if the password matches
-    if (password !== organization.password_hash) {
-      return res.status(401).json({ message: "Invalid password" });
+    if (!organization.account) {
+      return res.status(400).json({ error: "Couldn't find your account" });
     }
-
-    // If the password is valid, send a success response
-    res.json({ message: "Login successful", organization });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while logging in",
-      error,
-    });
+    const passwordMatches = await user.account.comparePassword(
+      password,
+      organization.password_hash
+    );
+    if (!passwordMatches) {
+      return res.status(400).json({ error: "Wrong username or password" });
+    }
+    const token = await generateJWT(user, jwtExp);
+    res.cookie("jwt", token, { httpOnly: true });
+    res.json(token);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -495,12 +547,9 @@ organizationController.addRating = async (req, res) => {
 
     // Validate rating value (assuming the rating is a number between 1 and 5)
     if (typeof rating !== "number" || rating < 1 || rating > 5) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Invalid rating value. Please provide a number between 1 and 5.",
-        });
+      return res.status(400).json({
+        error: "Invalid rating value. Please provide a number between 1 and 5.",
+      });
     }
 
     // Find the organization by ID
