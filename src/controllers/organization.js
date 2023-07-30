@@ -14,35 +14,78 @@ const organizationController = {};
 //     }
 // };
 
-// organizationController.getOrganization = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const organization = await OrganizationModel.findById(id);
-//         res.json(organization);
-//     } catch (error) {
-//         res.status(500).json({
-//             message: 'Error while getting organization',
-//             error
-//         });
-//     }
-// };
-
 organizationController.createAccount = async (req, res) => {
-    try {
-        const organization = new OrganizationModel(req.body);
-        await organization.save();
-        res.json({
-            message: 'Organization successfully created',
-            organization
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error while creating organization',
-            error
-        });
-    }
+  try {
+    const organization = new OrganizationModel(req.body);
+    await organization.save();
+    res.json({
+      message: "Organization successfully created",
+      organization,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while creating organization",
+      error,
+    });
+  }
 };
 
+//Update organization account
+organizationController.updateAccount = async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const { name, email, description, image, phone_number } = req.body;
+
+    // Find the organization by ID
+    const organization = await OrganizationModel.findById(organizationId);
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Update organization details
+    organization.name = name;
+    organization.email = email;
+    organization.description = description;
+    organization.image = image;
+    organization.phone_number = phone_number;
+
+    // Save the updated organization
+    await organization.save();
+
+    res.json({
+      message: "Organization details updated successfully",
+      organization,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while updating organization details", error });
+  }
+};
+
+// Delete organization account
+organizationController.deleteAccount = async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+
+    // Find the organization by ID
+    const organization = await OrganizationModel.findById(organizationId);
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Delete the organization
+    await organization.remove();
+
+    res.json({ message: "Organization account deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while deleting organization account", error });
+  }
+};
 
 organizationController.login = async (req, res) => {
   try {
@@ -243,6 +286,23 @@ organizationController.updateAccount = async (req, res) => {
   }
 };
 
+// Get oranization by id
+organizationController.getOrganizationById = async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const organization = await OrganizationModel.findById(organizationId);
+    if (!organization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+    res.json(organization);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while getting organization",
+      error,
+    });
+  }
+};
+
 organizationController.getAttendingUsers = async (req, res) => {
   try {
     const { organizationId } = req.params;
@@ -424,6 +484,68 @@ organizationController.searchEvents = async (req, res) => {
       message: "Error while searching for events",
       error,
     });
+  }
+};
+
+// Add a rating for an organization
+organizationController.addRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating } = req.body;
+
+    // Validate rating value (assuming the rating is a number between 1 and 5)
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Invalid rating value. Please provide a number between 1 and 5.",
+        });
+    }
+
+    // Find the organization by ID
+    const organization = await OrganizationModel.findById(id);
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Update the organization's rating based on the new rating value
+    const totalRatings = organization.rating || 0;
+    const totalUsersRated = organization.totalUsersRated || 0;
+    const newTotalRatings = totalRatings + rating;
+    const newTotalUsersRated = totalUsersRated + 1;
+    organization.rating = newTotalRatings / newTotalUsersRated;
+    organization.totalUsersRated = newTotalUsersRated;
+
+    // Save the updated organization
+    await organization.save();
+
+    res.json({ message: "Rating added successfully", organization });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while adding rating for the organization", error });
+  }
+};
+
+// Get ratings for an organization
+organizationController.getRatings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const organization = await OrganizationModel.findById(id).populate(
+      "ratings.user",
+      "name"
+    ); // Populate user field with user's name
+
+    if (!organization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+
+    res.json(organization.ratings);
+  } catch (error) {
+    res.status(500).json({ message: "Error while getting ratings", error });
   }
 };
 
