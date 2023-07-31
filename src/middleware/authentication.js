@@ -7,7 +7,7 @@ const isAuthenticated = (req, res, next) => {
   const token = req.cookies.jwt;
   if(token) {
     if (req.path.includes('/signin') || req.path.includes('/signup')) {
-      return res.redirect('http://localhost:3000/api-docs');
+      return res.redirect(`${process.env.DOMAIN}/api-docs`);
     }
   }
   next()
