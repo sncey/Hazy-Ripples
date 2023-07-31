@@ -4,7 +4,6 @@ const DonationModel = require("../db/models/donation");
 const sendEmail = require("../utils/email");
 const donationTemplate = require("../emailTemplates/donation");
 const jwt = require("jsonwebtoken");
-const path = require("path");
 const donationController = {};
 
 donationController.checkout = async (req, res) => {
