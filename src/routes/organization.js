@@ -12,9 +12,23 @@ const authentication = require("../middleware/authentication");
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
-
-//TODO: This routes causing an error because callback function looks undefined
 routes.post("/create-account", OrganizationController.createAccount);
+
+// Update organization details
+routes.put(
+  "/:organizationId/update-account",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.updateAccount
+);
+
+// Delete organization account
+routes.delete(
+  "/:organizationId",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.deleteAccount
+);
 
 // Login to the organization account
 routes.post("/login", OrganizationController.login);
@@ -47,6 +61,9 @@ routes.delete(
   authentication.isEventOwner,
   OrganizationController.deleteEvent
 );
+
+// Get Organization by ID
+routes.get("/:organizationId", OrganizationController.getOrganizationById);
 
 // Update organization details
 routes.put(
@@ -97,5 +114,15 @@ routes.get(
   "/:organizationId/events/search",
   OrganizationController.searchEvents
 );
+
+// POST route to add a rating for an organization
+routes.post(
+  "/organization/:id/rate",
+  authentication.authMiddleware,
+  OrganizationController.addRating
+);
+
+// GET route to get ratings for an organization
+routes.get("/organization/:id/ratings", OrganizationController.getRatings);
 
 module.exports = routes;
