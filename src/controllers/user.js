@@ -95,9 +95,11 @@ userController.postSignup = async (req, res) => {
       gender,
       avatar,
     });
+    console.log(user)
     try {
       // Save the user
       user = await user.save();
+      console.log(user)
       const account = new AccountModel({
         user: user._id,
         password_hash: password,

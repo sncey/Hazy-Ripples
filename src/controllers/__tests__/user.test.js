@@ -1,287 +1,157 @@
-// const request = require('supertest');
-// const jwt = require('jsonwebtoken');
-// const app = require('../../app.js');
-// const UserModel = require('../../db/models/user');
-// const AccountModel = require('../../db/models/account');
-// const mongoose = require('mongoose');
-// const bcrypt = require('bcrypt');
-
-// // Helper function to generate a JWT for testing
-// const generateJWT = (user, jwtExp) => {
-//   return jwt.sign(
-//     {
-//       id: user._id,
-//       username: user.username,
-//       exp: jwtExp,
-//       iat: Math.floor(Date.now() / 1000), // Issued at date
-//     },
-//     process.env.JWT_SECRET
-//   );
-// };
-
-// const checkErrorCode = (err, res) => {
-//   if (err.code === 11000) {
-//     const fieldName = Object.keys(err.keyValue)[0];
-//     const errorMessage = `${fieldName} already used`;
-//     return { status: 400, body: { error: errorMessage } };
-//   }
-//   return { status: 400, body: { error: err.message } };
-// };
-
-// describe('POST /user/signin', () => {
-//   beforeEach(() => {
-//     jest.clearAllMocks(); // Clear all previous mock calls before each test
-//   });
-
-//   it('should sign in a user with correct credentials and return a JWT', async () => {
-//     const mockUser = {
-//       emailOrUsername: 'test@example.com',
-//       password: 'testpassword',
-//       rememberMe: true,
-//     };
-
-//     const jwtExp = Math.floor(Date.now() / 1000) + 1209600; // 14 days expiration
-
-//     // Mock the user object returned by the UserModel.findOne
-//     const mockUserFromDB = {
-//       _id: 'user_id',
-//       email: 'test@example.com',
-//       username: 'testuser',
-//       account: new AccountModel({
-//         password_hash: await bcrypt.hash('testpassword', 10), // Mock hashed password
-//         comparePassword: jest.fn().mockResolvedValueOnce(true), // Mock the comparePassword method
-//       }),
-//     };
-
-//     UserModel.findOne = jest.fn().mockResolvedValueOnce(mockUserFromDB);
-
-//     // Mock the populate method on the virtual 'account' field
-//     UserModel.findOne.mockReturnValueOnce({
-//       populate: jest.fn().mockResolvedValueOnce(mockUserFromDB), // Mock the populate method
-//     });
-
-//     const mockToken = generateJWT(mockUserFromDB, jwtExp);
-
-//     const response = await request(app).post('/user/signin').send(mockUser);
-
-//     expect(response.body).toEqual(mockToken);
-//     expect(response.header['set-cookie']).toBeDefined();
-//     expect(response.header['set-cookie'][0]).toMatch(/jwt=.+; HttpOnly/);
-//   });
-
-//   it('should return an error when providing wrong credentials', async () => {
-//     const mockUser = {
-//       emailOrUsername: 'test@example.com',
-//       password: 'wrongpassword',
-//       rememberMe: true,
-//     };
-
-//     const jwtExp = Math.floor(Date.now() / 1000) + 1209600; // 14 days expiration
-
-//     // Mock the user object returned by the UserModel.findOne
-//     const mockUserFromDB = {
-//       _id: 'user_id',
-//       email: 'test@example.com',
-//       username: 'testuser',
-//       account: new AccountModel({
-//         password_hash: await bcrypt.hash('testpassword', 10), // Mock hashed password
-//         comparePassword: jest.fn().mockResolvedValueOnce(false), // Mock the comparePassword method
-//       }),
-//     };
-
-//     UserModel.findOne = jest.fn().mockResolvedValueOnce(mockUserFromDB);
-
-//     // Mock the populate method on the virtual 'account' field
-//     UserModel.findOne.mockReturnValueOnce({
-//       populate: jest.fn().mockResolvedValueOnce(mockUserFromDB), // Mock the populate method
-//     });
-
-//     const response = await request(app).post('/user/signin').send(mockUser);
-
-//     const expectedResponse = checkErrorCode(
-//       new Error('Wrong username or password'),
-//       response
-//     );
-
-//     expect(response.status).toBe(expectedResponse.status);
-//     expect(response.body).toEqual(expectedResponse.body);
-//   });
-
-//   it('should return an error when the user does not have an account', async () => {
-//     const mockUser = {
-//       emailOrUsername: 'test@example.com',
-//       password: 'testpassword',
-//       rememberMe: true,
-//     };
-
-//     const jwtExp = Math.floor(Date.now() / 1000) + 1209600; // 14 days expiration
-
-//     // Mock the user object returned by the UserModel.findOne
-//     const mockUserFromDB = {
-//       _id: 'user_id',
-//       email: 'test@example.com',
-//       username: 'testuser',
-//       account: null, // Mock account as null (user without an account)
-//     };
-
-//     UserModel.findOne = jest.fn().mockResolvedValueOnce(mockUserFromDB);
-
-//     // Mock the populate method on the virtual 'account' field
-//     UserModel.findOne.mockReturnValueOnce({
-//       populate: jest.fn().mockResolvedValueOnce(mockUserFromDB), // Mock the populate method
-//     });
-
-//     const response = await request(app).post('/user/signin').send(mockUser);
-
-//     const expectedResponse = checkErrorCode(
-//       new Error("Couldn't find your account"),
-//       response
-//     );
-
-//     expect(response.status).toBe(expectedResponse.status);
-//     expect(response.body).toEqual(expectedResponse.body);
-//   });
-// });
-
-// afterAll(async () => {
-//   // Close the MongoDB connection after running all tests
-//   await mongoose.connection.close();
-// });
-
-
-
-
 const request = require('supertest');
-const jwt = require('jsonwebtoken');
-const app = require('../../app.js');
+const app = require('../../app');
 const UserModel = require('../../db/models/user');
 const AccountModel = require('../../db/models/account');
-const mongoose = require('mongoose');
+const sendEmail = require('../../utils/email');
+const jwt = require('jsonwebtoken');
+const mongoose = require('../../db/connection');
 const bcrypt = require('bcrypt');
 
-// Helper function to generate a JWT for testing
-const generateJWT = (user, jwtExp) => {
-  return jwt.sign(
-    {
-      id: user._id,
-      username: user.username,
-      exp: jwtExp,
-      iat: Math.floor(Date.now() / 1000), // Issued at date
-    },
-    process.env.JWT_SECRET
-  );
+// Mocking mail sender
+jest.mock('../../utils/email');
+sendEmail.mockImplementation(() => Promise.resolve());
+
+// Mocking models
+jest.mock('../../db/models/account');
+jest.mock('../../db/models/user');
+
+// Mock the JWT token generation function
+jest.mock('jsonwebtoken');
+jwt.sign.mockReturnValue('mocked-jwt-token');
+
+const createUser = async () => {
+  const userData = {
+    username: 'testuser3',
+    firstname: 'Test',
+    lastname: 'User',
+    email: 'test3@example.com',
+    phoneNumber: 9234567890,
+    birthday: new Date('2000-01-01'),
+    gender: 'male',
+    avatar: 'https://example.com/avatar.png',
+  };
+
+  const user = await UserModel.create(userData);
+
+  const account = new AccountModel({
+    user: user, // Set the user field directly to the user's _id
+    password_hash: 'TestPassword123.',
+  });
+
+  await account.save();
+
+  return user;
 };
 
-jest.mock('../../db/models/user'); // Mocking the UserModel for testing purposes
-jest.mock('../../db/models/account'); // Mocking the AccountModel for testing purposes
-
-describe('POST /user/signin', () => {
-  const req = {
-    body: {
-      emailOrUsername: 'testuser@example.com', // Replace with the test email or username
-      password: 'Cl12345.', // Replace with the test password
-      rememberMe: true, // Replace with the desired test value for rememberMe
-    },
-  };
-
-  const res = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
-    cookie: jest.fn(),
-  };
-
-  const fakeUser = {
-    _id: '64bd6a7cdfba432d576a9e28', // Replace with a valid test user ID
-    email: 'testuser@example.com', // Replace with the test email or username
-    username: 'testuser', // Replace with the test username
-    firstname: 'Test', // Replace with the test firstname
-    lastname: 'User', // Replace with the test lastname
-    phoneNumber: '5539292761', // Replace with the test phone number
-    birthday: new Date('2000-01-07'), // Replace with the test birthday
-    gender: 'male', // Replace with the test gender
-    registered_at: new Date('2023-07-29T11:46:10.572+00:00'), // Replace with the test registered_at date
-    avatar: 'string', // Replace with the test avatar URL
-    events: [], // Replace with the test events array
-    account: new AccountModel({
-      password_hash: async () => {return await bcrypt.hash('Cl12345.', 10)}, // Mock hashed password
-      comparePassword: jest.fn().mockResolvedValue(true), // Mock the comparePassword method
-    }),
-  };
-
-  it('should sign in a user with correct credentials and return a JWT', async () => {
-    // Mock the UserModel.findOne to return a fakeUser
-    UserModel.findOne.mockResolvedValue(fakeUser);
-
-    // Mock the populate method on the virtual 'account' field
-    UserModel.findOne.mockReturnValueOnce({
-      populate: jest.fn().mockResolvedValueOnce(fakeUser), // Mock the populate method
+describe('POST /user/signup', () => {
+  // Connect to the test database before running the tests
+  beforeAll(async () => {
+    await mongoose.connect(process.env.MONGODB_TEST_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-
-    const jwtExp = Math.floor(Date.now() / 1000) + 1209600; // 14 days expiration
-    const mockToken = generateJWT(fakeUser, jwtExp);
-
-    const response = await request(app).post('/user/signin').send(req.body);
-
-    expect(response.body).toEqual(mockToken);
-    expect(response.header['set-cookie']).toBeDefined();
-    expect(response.header['set-cookie'][0]).toMatch(/jwt=.+; HttpOnly/);
   });
 
-  it('should return an error when providing wrong credentials', async () => {
-    // Mock the UserModel.findOne to return null (no user found)
+  // Disconnect from the database after running the tests
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules();
+  });
+
+  it('should create a new user and account with valid data', async () => {
+    const userData = {
+        username: "testuser4",
+        firstname: "Test",
+        lastname: "User",
+        password: "Cl12345.",
+        confirmPassword: "Cl12345.",
+        phoneNumber: 5539292766,
+        email: "testuser4@example.com",
+        birthday: "2000-01-07",
+        gender: "male",
+        avatar: "string"
+    };
+
+    // Mock UserModel.findOne to simulate that no user with the same email exists
     UserModel.findOne.mockResolvedValue(null);
 
-    const response = await request(app).post('/user/signin').send(req.body);
+    // Mock UserModel.create to simulate successful user creation
+    UserModel.create.mockResolvedValue(createUser);
 
-    const expectedResponse = { status: 400, body: { error: 'Wrong username or password' } };
+    // Mock AccountModel.prototype.save to simulate successful account creation
+    AccountModel.prototype.save.mockResolvedValue();
 
-    expect(response.status).toBe(expectedResponse.status);
-    expect(response.body).toEqual(expectedResponse.body);
+    // Make the HTTP request to test the signup endpoint
+    const response = await request(app).post('/user/signup').send(userData);
+
+    console.log(response.body)
+
+    // Assertions
+    expect(response.body).toBe('pamplemousse');
+    expect(response).toThrow(TypeError);
+    expect(response.status).toBe(200);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(
+      userData.email,
+      'Welcome onboard',
+      expect.any(String)
+    );
+
+    // Assert that the "jwt" cookie is set
+    const cookies = response.header['set-cookie'][0].split(';');
+    const jwtCookie = cookies.find(cookie => cookie.startsWith('jwt='));
+    expect(jwtCookie).toBeTruthy();
+
+    // Extract the JWT token from the cookie for further testing if needed
+    const jwtToken = jwtCookie.split('=')[1];
+    expect(jwtToken).toBe('mocked-jwt-token');
   });
 
-  it('should return an error when the user does not have an account', async () => {
-    // Mock the UserModel.findOne to return a fakeUser without an account
-    const userWithoutAccount = { ...fakeUser, account: null };
-    UserModel.findOne.mockResolvedValue(userWithoutAccount);
+  it('should return an error if passwords do not match', async () => {
+    const userData = {
+        username: "testuser4",
+        firstname: "Test",
+        lastname: "User",
+        password: "Cl12345.",
+        confirmPassword: "Cl12345.6",
+        phoneNumber: "5539292766",
+        email: "testuser5@example.com",
+        birthday: "2000-01-07",
+        gender: "male",
+        avatar: "string"
+    };
 
-    const response = await request(app).post('/user/signin').send(req.body);
+    const response = await request(app).post('/user/signup').send(userData);
 
-    const expectedResponse = { status: 400, body: { error: "Couldn't find your account" } };
-
-    expect(response.status).toBe(expectedResponse.status);
-    expect(response.body).toEqual(expectedResponse.body);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('passwords do not match');
   });
 
-  it('should return an error when invalid password is provided', async () => {
-    // Mock the UserModel.findOne to return a fakeUser
-    UserModel.findOne.mockResolvedValue(fakeUser);
+  it('should return an error if email is already used', async () => {
+    const existingUser = { email: 'test@example.com' };
+    UserModel.findOne.mockResolvedValue(existingUser);
 
-    // Mock the comparePassword function to return false (password doesn't match)
-    fakeUser.account.comparePassword.mockResolvedValue(false);
+    const userData = {
+        username: "testuser4",
+        firstname: "Test",
+        lastname: "User",
+        password: "Cl12345.",
+        confirmPassword: "Cl12345.",
+        phoneNumber: "5539292766",
+        email: "test@example.com",
+        birthday: "2000-01-07",
+        gender: "male",
+        avatar: "string"
+    };
 
-    const response = await request(app).post('/user/signin').send(req.body);
+    const response = await request(app).post('/user/signup').send(userData);
 
-    const expectedResponse = { status: 400, body: { error: 'Wrong username or password' } };
-
-    expect(response.status).toBe(expectedResponse.status);
-    expect(response.body).toEqual(expectedResponse.body);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('test@example.com already used');
   });
 
-  it('should return an error when an exception is thrown', async () => {
-    const errorMessage = 'Test error message';
-    // Mock the UserModel.findOne to throw an error
-    UserModel.findOne.mockRejectedValueOnce(new Error(errorMessage));
-
-    const response = await request(app).post('/user/signin').send(req.body);
-
-    const expectedResponse = { status: 400, body: { error: errorMessage } };
-
-    expect(response.status).toBe(expectedResponse.status);
-    expect(response.body).toEqual(expectedResponse.body);
-  });
-});
-
-afterAll(async () => {
-  // Close the MongoDB connection after running all tests
-  await mongoose.connection.close();
 });

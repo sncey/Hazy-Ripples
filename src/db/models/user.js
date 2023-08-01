@@ -121,6 +121,16 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// userSchema.pre('find', function (next) {
+//   this.populate('account');
+//   next();
+// });
+
+// userSchema.pre('findOne', function (next) {
+//   this.populate('account');
+//   next();
+// });
+
 /*
 In the above code, we added two custom validation functions:
 validateEmail(email) and validateAge(age). 

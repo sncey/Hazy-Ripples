@@ -10,7 +10,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon src/app.js",
-    "test" : "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.0",
@@ -44,8 +44,10 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
+    "jest": "^29.6.2",
     "nodemon": "^2.0.15",
-    "prettier": "^2.5.1"
+    "prettier": "^2.5.1",
+    "supertest": "^6.3.3"
   },
   "description": "This is a template for the backend capstone project. It includes a basic structure for the project, as well as a basic structure for the database. It also includes a basic structure for the tests.",
   "bugs": {
