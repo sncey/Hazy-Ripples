@@ -52,6 +52,11 @@ const userSchema = mongoose.Schema({
     unique: true,
     sparse: true
   }, 
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
+  },
 });
 
 // userSchema.set('autoCreate', true);
