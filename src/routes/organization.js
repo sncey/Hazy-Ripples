@@ -4,10 +4,7 @@ const OrganizationController = require("../controllers/organization");
 const authentication = require("../middleware/authentication");
 
 // routes.get('/', OrganizationController.getOrganizations);
-// routes.get('/:id', OrganizationController.getOrganization); //get organization by id
 // routes.post('/', OrganizationController.createOrganization);
-// routes.put('/:id', OrganizationController.updateOrganization);
-// routes.delete('/:id', OrganizationController.deleteOrganization);
 
 // New routes for organization functionalities related to events
 
@@ -30,8 +27,12 @@ routes.delete(
   OrganizationController.deleteAccount
 );
 
-// Login to the organization account
-routes.post("/login", OrganizationController.login);
+// Signin to the organization account
+routes.post(
+  "/signin",
+  authentication.authMiddleware,
+  OrganizationController.signin
+);
 
 // Create an event for the organization
 routes.post(
@@ -64,14 +65,6 @@ routes.delete(
 
 // Get Organization by ID
 routes.get("/:organizationId", OrganizationController.getOrganizationById);
-
-// Update organization details
-routes.put(
-  "/:organizationId/update-account",
-  authentication.authMiddleware,
-  authentication.isOrganization,
-  OrganizationController.updateAccount
-);
 
 // Get users attending the organization's events
 routes.get(
@@ -117,12 +110,12 @@ routes.get(
 
 // POST route to add a rating for an organization
 routes.post(
-  "/organization/:id/rate",
+  "/:organizationId/rate",
   authentication.authMiddleware,
   OrganizationController.addRating
 );
 
 // GET route to get ratings for an organization
-routes.get("/organization/:id/ratings", OrganizationController.getRatings);
+routes.get("/:organizationId/ratings", OrganizationController.getRatings);
 
 module.exports = routes;
