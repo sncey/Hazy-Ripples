@@ -1,27 +1,7 @@
 const EventModel = require("../db/models/event");
 const UserModel = require("../db/models/user");
 const eventController = {};
-// eventController.getAllEvents = async (req, res) => {
-//   try {
-//     const events = await EventModel.find();
-//     res.json(events);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error while getting events", error });
-//   }
-// };
-// // Get all non-expired events
-// eventController.getAllEvents = async (req, res) => {
-//   try {
-//     const currentTime = new Date();
-//     const events = await EventModel.find({
-//       end_date: { $gt: currentTime },
-//       expired: false,
-//     }).sort({ start_date: 1 }); // Sort by start_date in ascending order (nearest future first)
-//     res.json(events);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
+
 // Get only non-expired events
 eventController.getEvents = async (req, res) => {
   try {
@@ -47,30 +27,7 @@ eventController.getExpiredEvents = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-// // Get ordered events (newest or oldest based on the query)
-// eventController.getOrderedEvents = async (req, res) => {
-//   try {
-//     const { order } = req.query;
-//     const currentTime = new Date();
-//     let events;
-//     if (order === "newest") {
-//       events = await EventModel.find({
-//         end_date: { $gt: currentTime },
-//         expired: false,
-//       }).sort({ start_date: -1 }); // Sort by start_date in descending order (newest events first)
-//     } else if (order === "oldest") {
-//       events = await EventModel.find({
-//         end_date: { $gt: currentTime },
-//         expired: false,
-//       }).sort({ start_date: 1 }); // Sort by start_date in ascending order (oldest events first)
-//     } else {
-//       return res.status(400).json({ error: "Invalid order query parameter" });
-//     }
-//     res.json(events);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
+
 // Get ordered events (newest or oldest based on the query)
 eventController.getOrderedEvents = async (req, res) => {
   try {
@@ -87,6 +44,7 @@ eventController.getOrderedEvents = async (req, res) => {
     res.status(500).json({ error: "Error while fetching events" });
   }
 };
+
 // Attend an event
 eventController.attendEvent = async (req, res) => {
   try {
@@ -147,11 +105,16 @@ eventController.unattendEvent = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-// Filter events by category
+
+// Filter events by category (case-insensitive)
 eventController.filterEventsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
-    const events = await EventModel.find({ category, expired: false });
+    const regex = new RegExp(category, "i"); // 'i' flag makes it case-insensitive
+    const events = await EventModel.find({
+      category: { $regex: regex },
+      expired: false,
+    });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -160,11 +123,16 @@ eventController.filterEventsByCategory = async (req, res) => {
     });
   }
 };
-// Filter events by location
+
+// Filter events by location (case-insensitive)
 eventController.filterEventsByLocation = async (req, res) => {
   try {
     const { location } = req.query;
-    const events = await EventModel.find({ location, expired: false });
+    const regex = new RegExp(location, "i"); // 'i' flag makes it case-insensitive
+    const events = await EventModel.find({
+      location: { $regex: regex },
+      expired: false,
+    });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -178,14 +146,24 @@ eventController.filterEventsByDate = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    // Create JavaScript Date objects from the date strings
+    // Convert query parameters to JavaScript Date objects
     const startDateTime = new Date(startDate);
     const endDateTime = new Date(endDate);
     endDateTime.setDate(endDateTime.getDate() + 1); // Add one day to include events on the end date
 
+    // Check if the date formats are valid
+    if (isNaN(startDateTime) || isNaN(endDateTime)) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    // Convert dates to ISO 8601 format
+    const isoStartDate = startDateTime.toISOString();
+    const isoEndDate = endDateTime.toISOString();
+
+    // Filter events using explicit date comparison with ISO 8601 formatted dates
     const events = await EventModel.find({
-      start_date: { $gte: startDateTime },
-      end_date: { $lt: endDateTime },
+      start_date: { $gte: isoStartDate },
+      end_date: { $lt: isoEndDate },
       expired: false,
     });
 
@@ -199,13 +177,25 @@ eventController.filterEventsByDate = async (req, res) => {
 };
 eventController.searchEventsByQuery = async (req, res) => {
   try {
-    const { query } = req.query;
-    const events = await EventModel.find({
-      $or: [
-        { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-      ],
-    });
+    const { query, startDate } = req.query;
+    const lowerCaseQuery = query.toLowerCase();
+    const regex = new RegExp(lowerCaseQuery, "i"); // 'i' flag makes it case-insensitive
+
+    // Convert startDate to a Date object
+    const parsedStartDate = startDate ? new Date(startDate) : null;
+
+    let events;
+    if (parsedStartDate) {
+      events = await EventModel.find({
+        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+        start_date: { $gte: parsedStartDate }, // Filter events with start_date greater than or equal to parsedStartDate
+      });
+    } else {
+      events = await EventModel.find({
+        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+      });
+    }
+
     res.json(events);
   } catch (error) {
     res

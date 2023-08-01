@@ -1,6 +1,24 @@
 const OrganizationModel = require("../db/models/organization");
 const EventModel = require("../db/models/event");
+const jwt = require("jsonwebtoken");
+const sendEmail = require("../utils/email");
+const resetPasswordTemplate = require("../emailTemplates/resetPassword");
+const welcomeTemplate = require("../emailTemplates/welcome");
+const organization = require("../db/models/organization");
+
 const organizationController = {};
+
+const generateJWT = (user, jwtExp) => {
+  return jwt.sign(
+    {
+      id: organization.id,
+      name: organization.name,
+      exp: jwtExp,
+      iat: Math.floor(Date.now() / 1000), // Issued at date
+    },
+    process.env.JWT_SECRET
+  );
+};
 
 // organizationController.getOrganizations = async (req, res) => {
 //     try {
@@ -14,61 +32,138 @@ const organizationController = {};
 //     }
 // };
 
-// organizationController.getOrganization = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const organization = await OrganizationModel.findById(id);
-//         res.json(organization);
-//     } catch (error) {
-//         res.status(500).json({
-//             message: 'Error while getting organization',
-//             error
-//         });
-//     }
-// };
-
 organizationController.createAccount = async (req, res) => {
-    try {
-        const organization = new OrganizationModel(req.body);
-        await organization.save();
-        res.json({
-            message: 'Organization successfully created',
-            organization
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error while creating organization',
-            error
-        });
+  const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
+  const {
+    name,
+    email,
+    password,
+    confirmPassword,
+    description,
+    phoneNumber,
+    image,
+  } = req.body;
+
+  try {
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
     }
+
+    let organization = await OrganizationModel.findOne({ email });
+
+    if (organization) {
+      return res.status(400).json({ error: `${email} is already used` });
+    }
+
+    organization = await OrganizationModel.create({
+      name,
+      email,
+      password,
+      description,
+      phoneNumber,
+      image,
+    });
+    // Save the organization
+    await organization.save();
+
+    const token = await generateJWT(organization, jwtExp);
+    const emailText = welcomeTemplate(organization.name);
+    sendEmail(email, "Welcome onboard", emailText);
+
+    res.cookie("jwt", token, { httpOnly: true });
+    res.json(token);
+  } catch (err) {
+    checkErorrCode(err, res);
+  }
 };
 
-
-organizationController.login = async (req, res) => {
+//Update organization account
+organizationController.updateAccount = async (req, res) => {
+  const organization = req.organization;
   try {
-    const { email, password } = req.body;
+    const { name, email, description, image, phone_number } = req.body;
 
-    // Find the organization by email
-    const organization = await OrganizationModel.findOne({ email });
+    // Find the organization by ID
+    const updatedOrganization = await OrganizationModel.findById(
+      organization.id
+    );
 
-    // If the organization is not found, return an error
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
+    if (!updatedOrganization) {
+      return res.status(404).json({ error: "Organization not found" });
     }
 
-    // Perform password validation here (You need to implement this logic based on your authentication system)
-    // For now, we are just checking if the password matches
-    if (password !== organization.password_hash) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
+    // Update organization details
+    organization.name = name;
+    organization.email = email;
+    organization.description = description;
+    organization.image = image;
+    organization.phone_number = phone_number;
 
-    // If the password is valid, send a success response
-    res.json({ message: "Login successful", organization });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while logging in",
-      error,
+    // Save the updated organization
+    await organization.save();
+
+    res.json({
+      message: "Organization details updated successfully",
+      organization,
     });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while updating organization details", error });
+  }
+};
+
+// Delete organization account
+organizationController.deleteAccount = async (req, res) => {
+  const organization = req.organization;
+  try {
+    // Find the organization by ID
+    const deletedOrganization = await OrganizationModel.findById(
+      organization.id
+    );
+
+    if (!deletedOrganization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Delete the organization
+    await organization.remove();
+
+    res.json({ message: "Organization account deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while deleting organization account", error });
+  }
+};
+
+organizationController.signin = async (req, res) => {
+  const { emailOrUsername, password, rememberMe } = req.body;
+  const jwtExp = rememberMe
+    ? Math.floor(Date.now() / 1000) + 1209600
+    : Math.floor(Date.now() / 1000) + 86400; // 14 days expiration : 1 day expiration
+  try {
+    const organization = await OrganizationModel.findOne({
+      $or: [{ email: emailOrUsername }, { name: emailOrUsername }],
+    }).populate("account");
+    if (!organization) {
+      return res.status(400).json({ error: "Wrong username or password" });
+    }
+    if (!organization.account) {
+      return res.status(400).json({ error: "Couldn't find your account" });
+    }
+    const passwordMatches = await user.account.comparePassword(
+      password,
+      organization.password_hash
+    );
+    if (!passwordMatches) {
+      return res.status(400).json({ error: "Wrong username or password" });
+    }
+    const token = await generateJWT(user, jwtExp);
+    res.cookie("jwt", token, { httpOnly: true });
+    res.json(token);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -238,6 +333,23 @@ organizationController.updateAccount = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error while updating organization account",
+      error,
+    });
+  }
+};
+
+// Get oranization by id
+organizationController.getOrganizationById = async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const organization = await OrganizationModel.findById(organizationId);
+    if (!organization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+    res.json(organization);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while getting organization",
       error,
     });
   }
@@ -424,6 +536,66 @@ organizationController.searchEvents = async (req, res) => {
       message: "Error while searching for events",
       error,
     });
+  }
+};
+
+// Add a rating for an organization
+organizationController.addRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user, rating, review } = req.body;
+
+    // Validate rating value (assuming the rating is a number between 1 and 5)
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        error: "Invalid rating value. Please provide a number between 1 and 5.",
+      });
+    }
+
+    // Find the organization by ID
+    const organization = await OrganizationModel.findById(id);
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Update the organization's rating based on the new rating value
+    const totalRatings = organization.rating || 0;
+    const totalUsersRated = organization.totalUsersRated || 0;
+    const newTotalRatings = totalRatings + rating;
+    const newTotalUsersRated = totalUsersRated + 1;
+    organization.rating = newTotalRatings / newTotalUsersRated;
+    organization.totalUsersRated = newTotalUsersRated;
+
+    // Add the rating to the organization's ratings array
+    organization.ratings.push({ user, rating, review });
+    await organization.save();
+
+    res.json({ message: "Rating added successfully", organization });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while adding rating for the organization", error });
+  }
+};
+
+// Get ratings for an organization
+organizationController.getRatings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const organization = await OrganizationModel.findById(id).populate(
+      "ratings.user",
+      "name"
+    ); // Populate user field with user's name
+
+    if (!organization) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+
+    res.json(organization.ratings);
+  } catch (error) {
+    res.status(500).json({ message: "Error while getting ratings", error });
   }
 };
 

@@ -4,20 +4,35 @@ const OrganizationController = require("../controllers/organization");
 const authentication = require("../middleware/authentication");
 
 // routes.get('/', OrganizationController.getOrganizations);
-// routes.get('/:id', OrganizationController.getOrganization); //get organization by id
 // routes.post('/', OrganizationController.createOrganization);
-// routes.put('/:id', OrganizationController.updateOrganization);
-// routes.delete('/:id', OrganizationController.deleteOrganization);
 
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
-
-//TODO: This routes causing an error because callback function looks undefined
 routes.post("/create-account", OrganizationController.createAccount);
 
-// Login to the organization account
-routes.post("/login", OrganizationController.login);
+// Update organization details
+routes.put(
+  "/:organizationId/update-account",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.updateAccount
+);
+
+// Delete organization account
+routes.delete(
+  "/:organizationId",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.deleteAccount
+);
+
+// Signin to the organization account
+routes.post(
+  "/signin",
+  authentication.authMiddleware,
+  OrganizationController.signin
+);
 
 // Create an event for the organization
 routes.post(
@@ -48,13 +63,8 @@ routes.delete(
   OrganizationController.deleteEvent
 );
 
-// Update organization details
-routes.put(
-  "/:organizationId/update-account",
-  authentication.authMiddleware,
-  authentication.isOrganization,
-  OrganizationController.updateAccount
-);
+// Get Organization by ID
+routes.get("/:organizationId", OrganizationController.getOrganizationById);
 
 // Get users attending the organization's events
 routes.get(
@@ -97,5 +107,15 @@ routes.get(
   "/:organizationId/events/search",
   OrganizationController.searchEvents
 );
+
+// POST route to add a rating for an organization
+routes.post(
+  "/:organizationId/rate",
+  authentication.authMiddleware,
+  OrganizationController.addRating
+);
+
+// GET route to get ratings for an organization
+routes.get("/:organizationId/ratings", OrganizationController.getRatings);
 
 module.exports = routes;
