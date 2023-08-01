@@ -1,36 +1,36 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
   username: {
-    type: String ,
+    type: String,
     required: true,
     unique: true,
   },
   firstname: {
-    type: String ,
+    type: String,
     required: true,
   },
   lastname: {
-    type: String ,
+    type: String,
     required: true,
   },
   email: {
-      type: String,
-      required: true,
-      unique: true,
+    type: String,
+    required: true,
+    unique: true,
   },
   phoneNumber: {
-    type: Number ,
+    type: Number,
     required: true,
     unique: true,
   },
   birthday: {
-    type: Date ,
+    type: Date,
     required: true,
   },
   gender: {
     type: String,
-    enum: ['male', 'female', 'not-specified'],
+    enum: ["male", "female", "not-specified"],
     required: true,
   },
   registered_at: {
@@ -43,25 +43,24 @@ const userSchema = mongoose.Schema({
   events: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Event',
+      ref: "Event",
     },
   ],
-  googleId : {
+  googleId: {
     type: String,
-    required: false, 
+    required: false,
     unique: true,
-    sparse: true
-  }, 
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
+    sparse: true,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
 });
 
 // userSchema.set('autoCreate', true);
 
-userSchema.virtual('fullname').get(function () {
+userSchema.virtual("fullname").get(function () {
   if (!this.firstname) {
     return this.username;
   } else if (!this.lastname) {
@@ -105,17 +104,17 @@ function validateAge(birthday) {
 // });
 
 // Middleware to validate email and age before saving
-userSchema.pre('save', async function (next) {
-  if (this.isModified('email') || this.isNew) {
+userSchema.pre("save", async function (next) {
+  if (this.isModified("email") || this.isNew) {
     // Validate the email
     if (!validateEmail(this.email)) {
-      return next(new Error('Invalid email format.'));
+      return next(new Error("Invalid email format."));
     }
   }
-  if (this.isModified('birthday') || this.isNew) {
+  if (this.isModified("birthday") || this.isNew) {
     // Validate the age
     if (!validateAge(this.birthday)) {
-      return next(new Error('Age must be at least 18.'));
+      return next(new Error("Age must be at least 18."));
     }
   }
   next();
@@ -134,14 +133,14 @@ age fields are modified. If any of the validations fail,
 we return an error using next(new Error(...)), which will 
 prevent the user from being saved.
 */
-userSchema.virtual('account', {
-  ref: 'Account', // Reference to the Accounts collection
-  localField: '_id',
-  foreignField: 'user',
+userSchema.virtual("account", {
+  ref: "Account", // Reference to the Accounts collection
+  localField: "_id",
+  foreignField: "user",
   justOne: true, // As it's a one-to-one relationship
 });
 
-userSchema.set('toObject', { virtuals: true });
-userSchema.set('toJSON', { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
+userSchema.set("toJSON", { virtuals: true });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);
