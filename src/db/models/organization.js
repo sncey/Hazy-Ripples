@@ -36,9 +36,21 @@ const organizationSchema = mongoose.Schema({
   phone_number: {
     type: String,
   },
-  rating: {
-    type: Number,
-  },
+  ratings: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      rating: {
+        type: Number,
+        required: true,
+      },
+      review: {
+        type: String,
+      },
+    },
+  ],
 });
 
 // Middleware to hash the password before saving the organization

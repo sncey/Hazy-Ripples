@@ -543,7 +543,7 @@ organizationController.searchEvents = async (req, res) => {
 organizationController.addRating = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rating } = req.body;
+    const { user, rating, review } = req.body;
 
     // Validate rating value (assuming the rating is a number between 1 and 5)
     if (typeof rating !== "number" || rating < 1 || rating > 5) {
@@ -567,7 +567,8 @@ organizationController.addRating = async (req, res) => {
     organization.rating = newTotalRatings / newTotalUsersRated;
     organization.totalUsersRated = newTotalUsersRated;
 
-    // Save the updated organization
+    // Add the rating to the organization's ratings array
+    organization.ratings.push({ user, rating, review });
     await organization.save();
 
     res.json({ message: "Rating added successfully", organization });
