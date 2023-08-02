@@ -3,20 +3,18 @@ require("dotenv").config();
 
 // Retrieve the MongoDB connection URI from the environment variables
 const mongoURI = process.env.MONGO_URI;
+const mongoURI_TEST = process.env.MONGODB_TEST_URI
+
+const dbURI = process.env.NODE_ENV === 'test'
+  ? mongoURI_TEST
+  : mongoURI;
 
 // Establish a connection to the database
-// mongoose.connect(mongoURI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+mongoose.connect(dbURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// Establish a connection to the database (if not already connected)
-if (!mongoose.connections.length) {
-  mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-}
 
 // Get the default connection
 const db = mongoose.connection;

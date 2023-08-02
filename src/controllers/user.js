@@ -95,17 +95,20 @@ userController.postSignup = async (req, res) => {
       gender,
       avatar,
     });
-    console.log(user)
+    // console.log("user: ",user)
+    // user = await user.save();
     try {
       // Save the user
-      user = await user.save();
-      console.log(user)
+      // user = await user.save();
+      // console.log(user)
       const account = new AccountModel({
         user: user._id,
         password_hash: password,
       });
+      // console.log("account: ",account)
       // Save the account
       await account.save();
+      
     } catch (err) {
       // Handle the error during account creation
       await user.deleteOne(); // Rollback the user creation if account creation fails
