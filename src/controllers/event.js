@@ -45,6 +45,20 @@ eventController.getOrderedEvents = async (req, res) => {
   }
 };
 
+// Get event by ID
+eventController.getEventById = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const event = await EventModel.findById(eventId).populate("organizer");
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: "Error while fetching event" });
+  }
+};
+
 // Attend an event
 eventController.attendEvent = async (req, res) => {
   try {

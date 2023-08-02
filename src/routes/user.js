@@ -40,7 +40,7 @@ routes.put("/", authentication.authMiddleware, userController.updateProfile);
 routes.delete("/", authentication.authMiddleware, userController.deleteProfile);
 routes.post("/signout", authentication.authMiddleware, userController.signout);
 routes.get("/profile/:username", userController.profile);
-routes.get("/forgotPassword", userController.forgotPassword);
-routes.put("/resetPassword", userController.resetPassword);
+routes.post("/forgotPassword", authentication.isAuthenticated, userController.forgotPassword);
+routes.put("/resetPassword", authentication.isAuthenticated, userController.resetPassword);
 
 module.exports = routes;

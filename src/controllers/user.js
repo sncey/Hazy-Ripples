@@ -40,16 +40,17 @@ userController.postSignin = async (req, res) => {
   try {
     const user = await UserModel.findOne({
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
-    }).populate("account");
+    })
     if (!user) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    if (!user.account) {
+    const account = await AccountModel.findOne({user: user._id})
+    if (!account) {
       return res.status(400).json({ error: "Couldn't find your account" });
     }
-    const passwordMatches = await user.account.comparePassword(
+    const passwordMatches = await account.comparePassword(
       password,
-      user.password_hash
+      account.password_hash
     );
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });

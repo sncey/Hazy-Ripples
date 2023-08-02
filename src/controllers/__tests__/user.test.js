@@ -169,70 +169,6 @@ describe('POST /user/signin', () => {
     jest.resetModules();
   });
 
-  // it('should sign in successfully with valid credentials', async () => {
-  //   const userData = {
-  //     username: "testuser4",
-  //     firstname: "Test",
-  //     lastname: "User",
-  //     password: "Cl12345.",
-  //     confirmPassword: "Cl12345.",
-  //     phoneNumber: 5539292766,
-  //     email: "testuser4@example.com",
-  //     birthday: "2000-01-07",
-  //     gender: "male",
-  //     avatar: "string"
-  //   };
-  
-  //   // Mock UserModel.findOne to simulate that the user with the same email exists and has an account
-  //   UserModel.findOne.mockResolvedValue({
-  //     ...userData,
-  //     account: {
-  //       comparePassword: jest.fn().mockResolvedValue(true)
-  //     }
-  //   });
-
-  //   UserModel.findOne.mockReturnValueOnce({
-  //     populate: jest.fn().mockResolvedValueOnce(userData), // Mock the populate method
-  //   });
-
-  
-  //   const signinData = {
-  //     emailOrUsername: userData.email, // Use the user's email as the identifier
-  //     password: 'Cl12345.', // Use the user's password
-  //     rememberMe: false, // Set rememberMe to false
-  //   };
-  
-  //    const userMock = new UserModel({
-  //     ...userData,
-  //     account: { comparePassword: jest.fn().mockResolvedValue(true) },
-  //   });
-  //   UserModel.prototype.populate = jest.fn().mockResolvedValue(userMock);
-
-  //   // Make the HTTP request to test the signin endpoint
-  //   const response = await request(app).post('/user/signin').send(signinData);
-  //   console.log(response.body)
-   
-  //   // console.log(response.body)
-  //   // Assertions
-  //   expect(response.status).toBe(200);
-  //   expect(response.body).toEqual(expect.any(String)); // We expect the response body to be a string (token)
-  //   expect(sendEmail).not.toHaveBeenCalled(); // No email should be sent during signin
-  //   expect(UserModel.findOne).toHaveBeenCalledWith({
-  //     $or: [{ email: signinData.emailOrUsername }, { username: signinData.emailOrUsername }],
-  //   });
-    
-  
-  //   // Assert that the "jwt" cookie is set
-  //   const cookies = response.header['set-cookie'][0].split(';');
-  //   const jwtCookie = cookies.find(cookie => cookie.startsWith('jwt='));
-  //   expect(jwtCookie).toBeTruthy();
-  
-  //   // Extract the JWT token from the cookie for further testing if needed
-  //   const jwtToken = jwtCookie.split('=')[1];
-  //   expect(jwtToken).toBe('mocked-jwt-token');
-  // });
-  
-
   it('should sign in successfully with valid credentials', async () => {
     const userData = {
       username: "testuser4",
@@ -247,31 +183,20 @@ describe('POST /user/signin', () => {
       avatar: "string"
     };
 
-    await UserModel.create.mockResolvedValue(userData);
+    // Mock UserModel.findOne to simulate that the user with the same email exists
+    UserModel.findOne.mockResolvedValue(userData);
 
-    // Mock AccountModel.prototype.save to simulate successful account creation
-    AccountModel.prototype.save.mockResolvedValue();
+    // Mock AccountModel.findOne to simulate that the account for the user exists
+    AccountModel.findOne.mockResolvedValue({
+      comparePassword: jest.fn().mockResolvedValue(true)
+    });
 
-    UserModel.findOne.mockReturnValueOnce({
-      populate: jest.fn().mockResolvedValueOnce(), // Mock the populate method
-    });
-    // Mock UserModel.findOne to simulate that the user with the same email exists and has an account
-    UserModel.findOne.mockResolvedValue({
-      ...userData,
-      account: {
-        comparePassword: jest.fn().mockResolvedValue(true)
-      }
-    });
-    // UserModel.findOne.mockReturnValueOnce({
-    //   populate: jest.fn().mockResolvedValueOnce(), // Mock the populate method
-    // });
-  
     const signinData = {
       emailOrUsername: userData.email, // Use the user's email as the identifier
       password: 'Cl12345.', // Use the user's password
       rememberMe: false, // Set rememberMe to false
     };
-  
+
     // Make the HTTP request to test the signin endpoint
     const response = await request(app).post('/user/signin').send(signinData);
     console.log(response.body)
@@ -282,21 +207,116 @@ describe('POST /user/signin', () => {
     expect(UserModel.findOne).toHaveBeenCalledWith({
       $or: [{ email: signinData.emailOrUsername }, { username: signinData.emailOrUsername }],
     });
-    expect(response.user.account.comparePassword).toHaveBeenCalledWith(
-      signinData.password,
-      userData.password_hash
-    );
-  
+    expect(AccountModel.findOne).toHaveBeenCalledWith({ user: userData._id });
+
     // Assert that the "jwt" cookie is set
     const cookies = response.header['set-cookie'][0].split(';');
     const jwtCookie = cookies.find(cookie => cookie.startsWith('jwt='));
     expect(jwtCookie).toBeTruthy();
-  
+
     // Extract the JWT token from the cookie for further testing if needed
     const jwtToken = jwtCookie.split('=')[1];
     expect(jwtToken).toBe('mocked-jwt-token');
   });
-  
+
+  it('should return an error when user is not found', async () => {
+    const signinData = {
+      emailOrUsername: "nonexistentuser@example.com", // Non-existent email
+      password: 'Cl12345.',
+      rememberMe: false,
+    };
+
+    // Mock UserModel.findOne to simulate that the user does not exist
+    UserModel.findOne.mockResolvedValue(null);
+
+    // Make the HTTP request to test the signin endpoint
+    const response = await request(app).post('/user/signin').send(signinData);
+
+    // Assertions
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Wrong username or password" });
+    expect(UserModel.findOne).toHaveBeenCalledWith({
+      $or: [{ email: signinData.emailOrUsername }, { username: signinData.emailOrUsername }],
+    });
+    expect(AccountModel.findOne).not.toHaveBeenCalled(); // Ensure AccountModel.findOne is not called
+    expect(sendEmail).not.toHaveBeenCalled(); // No email should be sent during signin
+  });
+
+  it('should return an error when user account is not found', async () => {
+    const userData = {
+      username: "testuser4",
+      firstname: "Test",
+      lastname: "User",
+      password: "Cl12345.",
+      confirmPassword: "Cl12345.",
+      phoneNumber: 5539292766,
+      email: "testuser4@example.com",
+      birthday: "2000-01-07",
+      gender: "male",
+      avatar: "string"
+    };
+
+    const signinData = {
+      emailOrUsername: userData.email, // Use the user's email as the identifier
+      password: 'Cl12345.', // Use the user's password
+      rememberMe: false, // Set rememberMe to false
+    };
+
+    // Mock UserModel.findOne to simulate that the user exists but the account does not
+    UserModel.findOne.mockResolvedValue(userData);
+    AccountModel.findOne.mockResolvedValue(null);
+
+    // Make the HTTP request to test the signin endpoint
+    const response = await request(app).post('/user/signin').send(signinData);
+
+    // Assertions
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Couldn't find your account" });
+    expect(UserModel.findOne).toHaveBeenCalledWith({
+      $or: [{ email: signinData.emailOrUsername }, { username: signinData.emailOrUsername }],
+    });
+    expect(AccountModel.findOne).toHaveBeenCalledWith({ user: userData._id });
+    expect(sendEmail).not.toHaveBeenCalled(); // No email should be sent during signin
+  });
+
+  it('should return an error when the password is incorrect', async () => {
+    const userData = {
+      username: "testuser4",
+      firstname: "Test",
+      lastname: "User",
+      password: "Cl12345.", // Correct password
+      confirmPassword: "Cl12345.",
+      phoneNumber: 5539292766,
+      email: "testuser4@example.com",
+      birthday: "2000-01-07",
+      gender: "male",
+      avatar: "string"
+    };
+
+    const signinData = {
+      emailOrUsername: userData.email, // Use the user's email as the identifier
+      password: 'WrongPassword', // Incorrect password
+      rememberMe: false, // Set rememberMe to false
+    };
+
+    // Mock UserModel.findOne to simulate that the user exists and the account exists
+    UserModel.findOne.mockResolvedValue(userData);
+    AccountModel.findOne.mockResolvedValue({
+      comparePassword: jest.fn().mockResolvedValue(false), // Mock incorrect password comparison
+    });
+
+    // Make the HTTP request to test the signin endpoint
+    const response = await request(app).post('/user/signin').send(signinData);
+
+    // Assertions
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Wrong username or password" });
+    expect(UserModel.findOne).toHaveBeenCalledWith({
+      $or: [{ email: signinData.emailOrUsername }, { username: signinData.emailOrUsername }],
+    });
+    expect(AccountModel.findOne).toHaveBeenCalledWith({ user: userData._id });
+    expect(sendEmail).not.toHaveBeenCalled(); // No email should be sent during signin
+  });
 });
 
 
