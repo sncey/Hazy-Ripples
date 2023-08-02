@@ -29,8 +29,13 @@ const swaggerOptions = {
       
     },
     apis: ["./src/swagger/controllers/*.js", "./src/swagger/models/*.js"],
+    
   };
 
 const specs = swaggerJsdoc(swaggerOptions);
+
+
+
+
 
 module.exports = specs;
