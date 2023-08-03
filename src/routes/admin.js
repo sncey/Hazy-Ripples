@@ -6,7 +6,7 @@ const authentication = require("../middleware/authentication");
 // Admin-only route example
 routes.get(
   "/admin-only",
-  //   authentication.isAdminMiddleware,
+  authentication.isAdminMiddleware,
   adminController.adminOnlyRoute
 );
 
@@ -22,28 +22,58 @@ routes.put(
   adminController.updateUserById
 );
 
-// Routes for managing events (admin privilege)
+// Routes for managing organizations (admin privilege)
+routes.get(
+  "/organizations",
+  authentication.isAdminMiddleware,
+  adminController.getAllOrganizations
+);
+routes.get(
+  "/organizations/:organizationId",
+  authentication.isAdminMiddleware,
+  adminController.getOrganizationById
+);
+routes.post(
+  "/organizations",
+  authentication.isAdminMiddleware,
+  adminController.createOrganization
+);
+routes.put(
+  "/organizations/:organizationId",
+  authentication.isAdminMiddleware,
+  adminController.updateOrganizationById
+);
 routes.delete(
+  "/organizations/:organizationId",
+  authentication.isAdminMiddleware,
+  adminController.deleteOrganizationById
+);
+
+// Routes for managing events (admin privilege)
+routes.get(
+  "/events",
+  authentication.isAdminMiddleware,
+  adminController.getAllEvents
+);
+routes.get(
   "/events/:eventId",
   authentication.isAdminMiddleware,
-  adminController.deleteEventById
+  adminController.getEventById
+);
+routes.post(
+  "/events",
+  authentication.isAdminMiddleware,
+  adminController.createEvent
 );
 routes.put(
   "/events/:eventId",
   authentication.isAdminMiddleware,
   adminController.updateEventById
 );
-
-// Routes for managing organizations (admin privilege)
 routes.delete(
-  "/organizations/:organizationId",
+  "/events/:eventId",
   authentication.isAdminMiddleware,
-  adminController.deleteOrganizationById
-);
-routes.put(
-  "/organizations/:organizationId",
-  authentication.isAdminMiddleware,
-  adminController.updateOrganizationById
+  adminController.deleteEventById
 );
 
 module.exports = routes;
