@@ -39,3 +39,5 @@ app.use("/", apiRoutes);
 app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);
 });
+
+module.exports = app;

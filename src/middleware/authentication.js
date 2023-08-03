@@ -39,10 +39,13 @@ const isAdminMiddleware = (req, res, next) => {
 
 const isAuthenticated = (req, res, next) => {
   const token = req.cookies.jwt;
-  if (token) {
-    if (req.path.includes("/signin") || req.path.includes("/signup")) {
-      return res.redirect(`${process.env.DOMAIN}/api-docs`);
-    }
+  if(token) {
+    if (req.path.includes('/signin') || 
+        req.path.includes('/signup') || 
+        req.path.includes('/forgotPassword') || 
+        req.path.includes('/resetPassword')) {
+          return res.redirect(`${process.env.DOMAIN}/api-docs`);
+        }
   }
   next();
 };
