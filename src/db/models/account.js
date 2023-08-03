@@ -9,8 +9,8 @@ const accountSchema = mongoose.Schema({
       unique: true,
     },
     password_hash: {
-        type: String ,
-        required: true,
+      type: String ,
+      required: true,
     },
 });
 

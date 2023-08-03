@@ -12,6 +12,7 @@ const generateJWT = (user, jwtExp) => {
     {
       id: user.id,
       username: user.username,
+      isAdmin: user.isAdmin,
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },

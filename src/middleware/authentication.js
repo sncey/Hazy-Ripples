@@ -26,17 +26,6 @@ const isAdminMiddleware = (req, res, next) => {
   res.status(403).json({ message: "Access denied" });
 };
 
-// const isAdminMiddleware = (req, res, next) => {
-//   // Check if the user is authenticated and if the user is an admin
-//   if (req.user && req.user.isAdmin) {
-//     // The user is an admin, so allow access to the route
-//     next();
-//   } else {
-//     // The user is not an admin, so deny access with a 403 Forbidden status
-//     res.status(403).json({ message: "Access denied" });
-//   }
-// };
-
 const isAuthenticated = (req, res, next) => {
   const token = req.cookies.jwt;
   if(token) {
@@ -58,7 +47,8 @@ const authMiddleware = (req, res, next) => {
   }
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decodedToken; // Attach the user to the request object for later use
+    req.user = decodedToken; // Attach the user to the request object for later uses
+    console.log(req.user)
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });

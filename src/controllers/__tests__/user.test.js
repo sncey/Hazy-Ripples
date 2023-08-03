@@ -5,7 +5,7 @@ const AccountModel = require('../../db/models/account');
 const sendEmail = require('../../utils/email');
 const jwt = require('jsonwebtoken');
 const mongoose = require('../../db/connection');
-const bcrypt = require('bcrypt');
+const authentication = require('../../middleware/authentication')
 
 // Mocking mail sender
 jest.mock('../../utils/email');
@@ -18,24 +18,6 @@ jest.mock('../../db/models/user');
 // Mock the JWT token generation function
 jest.mock('jsonwebtoken');
 jwt.sign.mockReturnValue('mocked-jwt-token');
-
-const createUser = async () => {
-  const userData = {
-    username: "testuser4",
-    firstname: "Test",
-    lastname: "User",
-    password: "Cl12345.",
-    confirmPassword: "Cl12345.",
-    phoneNumber: 5539292766,
-    email: "testuser4@example.com",
-    birthday: "2000-01-07",
-    gender: "male",
-    avatar: "string"
-};
-  // Create and return the user
-  return UserModel.create(userData);
-};
-
 
 describe('POST /user/signup', () => {
   // Connect to the test database before running the tests
@@ -199,7 +181,6 @@ describe('POST /user/signin', () => {
 
     // Make the HTTP request to test the signin endpoint
     const response = await request(app).post('/user/signin').send(signinData);
-    console.log(response.body)
     // Assertions
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.any(String)); // We expect the response body to be a string (token)
@@ -319,5 +300,81 @@ describe('POST /user/signin', () => {
   });
 });
 
+const JWT_SECRET = 'your_secret';
+describe('PUT /user', () => {
+ 
+  it('should update user profile with valid data', async () => {
+    // Mock user ID
+    const userId = 'user_id';
+  
+    // Mock the JWT token with the user ID
+    const token = jwt.sign({ id: userId }, JWT_SECRET);
+  
+    // Mock user data
+    const userData = {
+      _id: userId,
+      username: 'oldUsername',
+      firstname: 'Old Firstname',
+      lastname: 'Old Lastname',
+      phoneNumber: '1234567890',
+      birthday: '1990-01-01',
+      gender: 'male',
+      avatar: 'oldAvatar',
+    };
+  
+    // Mock the updated data
+    const updateData = {
+      password: 'newPassword',
+      confirmPassword: 'newPassword',
+      phoneNumber: '9876543210',
+      birthday: '2000-02-02',
+      username: 'newUsername',
+      firstname: 'New Firstname',
+      lastname: 'New Lastname',
+      gender: 'female',
+      avatar: 'newAvatar',
+    };
+  
+    // Mock UserModel.findById to simulate user found in the database
+    UserModel.findById.mockResolvedValue(userData); // <--- Mock the function with user data
+  
+    // Mock AccountModel.findOne to simulate account found in the database
+    AccountModel.findOne.mockResolvedValue({});
+  
+    // Make the HTTP request to update the user profile
+    const response = await request(app)
+      .put('/user')
+      .set('Cookie', [`jwt=${token}`]) // Attach the JWT token as a cookie
+      .send(updateData);
+    console.log(response.body);
+  
+    // Assertions
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('User updated successfully');
+  });
 
 
+  it('should return 400 if passwords do not match', async () => {
+    const token = jwt.sign({ id: 'user_id' }, JWT_SECRET);
+    const updateData = {
+      password: 'newPassword',
+      confirmPassword: 'mismatchedPassword',
+      phoneNumber: '9876543210',
+      birthday: '2000-02-02',
+      username: 'newUsername',
+      firstname: 'New Firstname',
+      lastname: 'New Lastname',
+      gender: 'female',
+      avatar: 'newAvatar',
+    };
+
+    const response = await request(app)
+      .put('/user')
+      .set('Cookie', [`jwt=${token}`]) // Attach the JWT token as a cookie
+      .send(updateData);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('passwords do not match');
+  });
+
+});
