@@ -83,27 +83,6 @@ function validateAge(birthday) {
   return birthday <= eighteenYearsAgo;
 }
 
-// userSchema.pre('save', async function (next) {
-//   if (this.isModified('password_hash') || this.isNew) {
-//     try {
-//       // Validate the password
-//       if (!validatePasswordStrength(this.password_hash)) {
-//         throw new Error(
-//           'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
-//         );
-//       }
-//       const saltRounds = 10;
-//       const hashedPassword = await bcrypt.hash(this.password_hash, saltRounds);
-//       this.password_hash = hashedPassword;
-//       next();
-//     } catch (err) {
-//       return next(err);
-//     }
-//   } else {
-//     next();
-//   }
-// });
-
 // Middleware to validate email and age before saving
 userSchema.pre('save', async function (next) {
   if (this.isModified('email') || this.isNew) {
@@ -120,6 +99,16 @@ userSchema.pre('save', async function (next) {
   }
   next();
 });
+
+// userSchema.pre('find', function (next) {
+//   this.populate('account');
+//   next();
+// });
+
+// userSchema.pre('findOne', function (next) {
+//   this.populate('account');
+//   next();
+// });
 
 /*
 In the above code, we added two custom validation functions:

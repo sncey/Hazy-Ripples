@@ -40,16 +40,17 @@ userController.postSignin = async (req, res) => {
   try {
     const user = await UserModel.findOne({
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
-    }).populate("account");
+    })
     if (!user) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    if (!user.account) {
+    const account = await AccountModel.findOne({user: user._id})
+    if (!account) {
       return res.status(400).json({ error: "Couldn't find your account" });
     }
-    const passwordMatches = await user.account.comparePassword(
+    const passwordMatches = await account.comparePassword(
       password,
-      user.password_hash
+      account.password_hash
     );
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });
@@ -95,15 +96,20 @@ userController.postSignup = async (req, res) => {
       gender,
       avatar,
     });
+    // console.log("user: ",user)
+    // user = await user.save();
     try {
       // Save the user
-      user = await user.save();
+      // user = await user.save();
+      // console.log(user)
       const account = new AccountModel({
         user: user._id,
         password_hash: password,
       });
+      // console.log("account: ",account)
       // Save the account
       await account.save();
+      
     } catch (err) {
       // Handle the error during account creation
       await user.deleteOne(); // Rollback the user creation if account creation fails
