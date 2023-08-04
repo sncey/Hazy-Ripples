@@ -1,11 +1,12 @@
 const request = require('supertest');
-const app = require('../../app');
+const {server} = require('../../app');
 const UserModel = require('../../db/models/user');
 const AccountModel = require('../../db/models/account');
 const sendEmail = require('../../utils/email');
 const jwt = require('jsonwebtoken');
 const mongoose = require('../../db/connection');
-const authentication = require('../../middleware/authentication')
+const bcrypt = require('bcrypt');
+const userController = require('../user')
 
 // Mocking mail sender
 jest.mock('../../utils/email');
@@ -19,6 +20,9 @@ jest.mock('../../db/models/user');
 jest.mock('jsonwebtoken');
 jwt.sign.mockReturnValue('mocked-jwt-token');
 
+//Mock the Bcrypt hashing functionality
+jest.mock('bcrypt');
+
 describe('POST /user/signup', () => {
   // Connect to the test database before running the tests
   beforeAll(async () => {
@@ -31,6 +35,7 @@ describe('POST /user/signup', () => {
   // Disconnect from the database after running the tests
   afterAll(async () => {
     await mongoose.connection.close();
+    await server.close()
   });
 
   beforeEach(() => {
@@ -39,6 +44,7 @@ describe('POST /user/signup', () => {
   });
 
   it('should create a new user and account with valid data', async () => {
+    
     const userData = {
         username: "testuser4",
         firstname: "Test",
@@ -62,7 +68,7 @@ describe('POST /user/signup', () => {
     AccountModel.prototype.save.mockResolvedValue();
 
     // Make the HTTP request to test the signup endpoint
-    const response = await request(app).post('/user/signup').send(userData);
+    const response = await request(server).post('/user/signup').send(userData);
 
     // console.log(response.body)
 
@@ -100,7 +106,7 @@ describe('POST /user/signup', () => {
         avatar: "string"
     };
 
-    const response = await request(app).post('/user/signup').send(userData);
+    const response = await request(server).post('/user/signup').send(userData);
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('passwords do not match');
@@ -123,7 +129,7 @@ describe('POST /user/signup', () => {
         avatar: "string"
     };
 
-    const response = await request(app).post('/user/signup').send(userData);
+    const response = await request(server).post('/user/signup').send(userData);
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('test@example.com already used');
@@ -180,7 +186,7 @@ describe('POST /user/signin', () => {
     };
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(app).post('/user/signin').send(signinData);
+    const response = await request(server).post('/user/signin').send(signinData);
     // Assertions
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.any(String)); // We expect the response body to be a string (token)
@@ -211,7 +217,7 @@ describe('POST /user/signin', () => {
     UserModel.findOne.mockResolvedValue(null);
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(app).post('/user/signin').send(signinData);
+    const response = await request(server).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);
@@ -248,7 +254,7 @@ describe('POST /user/signin', () => {
     AccountModel.findOne.mockResolvedValue(null);
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(app).post('/user/signin').send(signinData);
+    const response = await request(server).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);
@@ -287,7 +293,7 @@ describe('POST /user/signin', () => {
     });
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(app).post('/user/signin').send(signinData);
+    const response = await request(server).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);
@@ -301,80 +307,82 @@ describe('POST /user/signin', () => {
 });
 
 const JWT_SECRET = 'your_secret';
+
 describe('PUT /user', () => {
- 
-  it('should update user profile with valid data', async () => {
-    // Mock user ID
-    const userId = 'user_id';
-  
-    // Mock the JWT token with the user ID
-    const token = jwt.sign({ id: userId }, JWT_SECRET);
-  
-    // Mock user data
-    const userData = {
-      _id: userId,
-      username: 'oldUsername',
-      firstname: 'Old Firstname',
-      lastname: 'Old Lastname',
-      phoneNumber: '1234567890',
-      birthday: '1990-01-01',
-      gender: 'male',
-      avatar: 'oldAvatar',
+  let req, res;
+
+  beforeEach(() => {
+    req = {
+      user: {
+        id: 'user_id', // Provide the user ID as needed for the test
+      },
+      body: {
+        // Provide the required fields for updating the profile
+        password: 'newPassword',
+        confirmPassword: 'newPassword',
+        phoneNumber: '1234567890',
+        birthday: new Date('2000-01-01'),
+        username: 'new_username',
+        firstname: 'NewFirstName',
+        lastname: 'NewLastName',
+        gender: 'female',
+        avatar: 'new_avatar_url',
+      },
     };
-  
-    // Mock the updated data
-    const updateData = {
-      password: 'newPassword',
-      confirmPassword: 'newPassword',
-      phoneNumber: '9876543210',
-      birthday: '2000-02-02',
-      username: 'newUsername',
-      firstname: 'New Firstname',
-      lastname: 'New Lastname',
-      gender: 'female',
-      avatar: 'newAvatar',
+    res = {
+      json: jest.fn(),
+      status: jest.fn(() => res),
     };
-  
-    // Mock UserModel.findById to simulate user found in the database
-    UserModel.findById.mockResolvedValue(userData); // <--- Mock the function with user data
-  
-    // Mock AccountModel.findOne to simulate account found in the database
-    AccountModel.findOne.mockResolvedValue({});
-  
-    // Make the HTTP request to update the user profile
-    const response = await request(app)
-      .put('/user')
-      .set('Cookie', [`jwt=${token}`]) // Attach the JWT token as a cookie
-      .send(updateData);
-    console.log(response.body);
-  
-    // Assertions
-    expect(response.status).toBe(200);
-    expect(response.body.message).toBe('User updated successfully');
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+ 
+  it('should update the user profile and password', async () => {
+    // Mock the findById and findOne functions of UserModel and AccountModel
+    UserModel.findById.mockResolvedValue({
+      save: jest.fn().mockResolvedValue(),
+    });
 
-  it('should return 400 if passwords do not match', async () => {
-    const token = jwt.sign({ id: 'user_id' }, JWT_SECRET);
-    const updateData = {
-      password: 'newPassword',
-      confirmPassword: 'mismatchedPassword',
-      phoneNumber: '9876543210',
-      birthday: '2000-02-02',
-      username: 'newUsername',
-      firstname: 'New Firstname',
-      lastname: 'New Lastname',
-      gender: 'female',
-      avatar: 'newAvatar',
-    };
+    AccountModel.findOne.mockResolvedValue({
+      set: jest.fn(),
+      save: jest.fn().mockResolvedValue(),
+    });
 
-    const response = await request(app)
-      .put('/user')
-      .set('Cookie', [`jwt=${token}`]) // Attach the JWT token as a cookie
-      .send(updateData);
+    // Mock bcrypt.hash and compare functions
+    bcrypt.hash.mockResolvedValue('hashedPassword');
+    bcrypt.compare.mockResolvedValue(true);
 
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe('passwords do not match');
+    await userController.updateProfile(req, res);
+
+    // Expectations
+    expect(UserModel.findById).toHaveBeenCalledWith('user_id');
+
+    expect(AccountModel.findOne).toHaveBeenCalledWith({ user: 'user_id' });
+
+    expect(res.json).toHaveBeenCalledWith({ message: 'User updated successfully' });
+    expect(res.status).not.toHaveBeenCalled(); // Ensure status is not called (no error)
+  });
+
+  it('should return error if passwords do not match', async () => {
+    req.body.confirmPassword = 'differentPassword';
+
+    await userController.updateProfile(req, res);
+
+    // Expectations
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'passwords do not match' });
+  });
+
+  it('should return error if user is not found', async () => {
+    UserModel.findById.mockResolvedValue(null);
+
+    await userController.updateProfile(req, res);
+
+    // Expectations
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
   });
 
 });
