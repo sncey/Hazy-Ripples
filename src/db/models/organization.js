@@ -53,45 +53,27 @@ const organizationSchema = mongoose.Schema({
   ],
 });
 
-// Middleware to hash the password before saving the organization
-// organizationSchema.pre("save", async function (next) {
-//   try {
-//     if (!this.isModified("password")) return next();
+function validatePasswordStrength(password) {
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+  return passwordRegex.test(password);
+}
 
-//     // Generate a salt to hash the password
-//     const salt = await bcrypt.genSalt(10);
-
-//     // Hash the password using the salt
-//     const hashedPassword = await bcrypt.hash(this.password, salt);
-
-//     // Set the hashed password as the new value for the 'password' field
-//     this.password = hashedPassword;
-
-//     return next();
-//   } catch (error) {
-//     return next(error);
-//   }
-// });
-
-organizationSchema.pre("save", async function (next) {
-  try {
-    if (!this.isModified("password")) return next();
-
-    // Generate a salt to hash the password
-    const salt = await bcrypt.genSalt(10);
-
-    // Hash the password using the salt
-    const hashedPassword = await bcrypt.hash(this.password, salt);
-
-    // Set the hashed password as the new value for the 'password' field
+organizationSchema.pre('save', async function (next) {
+  if (this.isModified('password') || this.isNew) {
+    // Validate the password
+    if (!validatePasswordStrength(this.password)) {
+      return next(
+        new Error(
+          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
+        )
+      );
+    }
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(this.password, saltRounds);
     this.password = hashedPassword;
-
-    return next();
-  } catch (error) {
-    return next(error);
   }
+  next();
 });
-
 
 organizationSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password);

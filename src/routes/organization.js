@@ -9,7 +9,7 @@ const authentication = require("../middleware/authentication");
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
-routes.post("/create-account", OrganizationController.createAccount);
+routes.post("/signup", authentication.isAuthenticated, OrganizationController.createAccount);
 
 // Signin to the organization account
 routes.post(
