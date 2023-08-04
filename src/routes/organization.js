@@ -43,7 +43,7 @@ routes.post(
 
 // Create an event for the organization
 routes.post(
-  "/create-event",
+  "/:organizationId/create-event",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.createEvent

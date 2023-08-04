@@ -115,7 +115,7 @@ organizationController.updateAccount = async (req, res) => {
 
 // Delete organization account
 organizationController.deleteAccount = async (req, res) => {
-  const organization = req.organization;
+  const organization = req.user;
   try {
     // Find the organization by ID
     const deletedOrganization = await OrganizationModel.findById(
@@ -175,12 +175,16 @@ organizationController.signout = (req, res) => {
 
 organizationController.createEvent = async (req, res) => {
   try {
+    const organizationId = req.params.organizationId;
     const {
-      organizationId,
       eventName,
       eventDate,
       eventLocation,
       eventCategory,
+      start_date,
+      end_date,
+      description,
+      title,
     } = req.body;
 
     // Check if the organization exists
@@ -191,11 +195,13 @@ organizationController.createEvent = async (req, res) => {
 
     // Create a new event using the EventModel
     const event = new EventModel({
-      name: eventName,
-      date: eventDate,
+      title: title,
+      organizer: organizationId,
+      description: description,
       location: eventLocation,
       category: eventCategory,
-      createdBy: organizationId,
+      start_date: new Date(start_date),
+      end_date: new Date(end_date),
     });
 
     // Save the event
