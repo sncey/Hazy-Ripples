@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 require("./db/connection");
 require("dotenv").config();
 const swaggerOptions = require("./swagger/swaggerOptions"); // Import the Swagger options from the separate file
-
+const updateExpiredEvents = require("./utils/updateExpiredEvents");
 
 const port = process.env.NODE_LOCAL_PORT || 8080;
 
@@ -29,12 +29,16 @@ middleware.forEach((item) => {
   app.use(item);
 });
 
-
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOptions, { explorer: true }));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerOptions, { explorer: true })
+);
 
 app.use("/", apiRoutes);
 
+// Start the cron job
+updateExpiredEvents();
 
 app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);

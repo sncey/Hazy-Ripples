@@ -53,7 +53,6 @@ const organizationSchema = mongoose.Schema({
   ],
 });
 
-// Middleware to hash the password before saving the organization
 organizationSchema.pre("save", async function (next) {
   try {
     if (!this.isModified("password")) return next();
@@ -72,5 +71,9 @@ organizationSchema.pre("save", async function (next) {
     return next(error);
   }
 });
+
+organizationSchema.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
 module.exports = mongoose.model("Organization", organizationSchema);

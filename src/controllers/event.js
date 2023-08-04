@@ -62,17 +62,17 @@ eventController.getEventById = async (req, res) => {
 // Attend an event
 eventController.attendEvent = async (req, res) => {
   try {
-    const { eventId } = req.body;
+    const { eventId } = req.params;
     const user = req.user;
     // Check if the event exists and is not expired
-    const event = await EventModel.findById(eventId);
+    const event = await EventModel.findById(eventId).populate("");
     if (!event || event.expired) {
       return res
         .status(404)
         .json({ message: "Event not found or has already expired" });
     }
     // Check if the user is already attending the event
-    if (user.events.includes(eventId)) {
+    if (user.events?.includes(eventId)) {
       return res
         .status(400)
         .json({ message: "You are already attending this event" });
@@ -91,7 +91,7 @@ eventController.attendEvent = async (req, res) => {
 // Unattend an event
 eventController.unattendEvent = async (req, res) => {
   try {
-    const { eventId } = req.body;
+    const { eventId } = req.params;
     const user = req.user;
     // Check if the event exists and is not expired
     const event = await EventModel.findById(eventId);
@@ -217,4 +217,5 @@ eventController.searchEventsByQuery = async (req, res) => {
       .json({ message: "Error while searching for events", error });
   }
 };
+
 module.exports = eventController;

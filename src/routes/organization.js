@@ -30,8 +30,15 @@ routes.delete(
 // Signin to the organization account
 routes.post(
   "/signin",
-  authentication.authMiddleware,
+  authentication.isAuthenticated,
   OrganizationController.signin
+);
+
+// Signout from the organization account
+routes.post(
+  "/signout",
+  authentication.authMiddleware,
+  OrganizationController.signout
 );
 
 // Create an event for the organization

@@ -11,8 +11,8 @@ const organizationController = {};
 const generateJWT = (user, jwtExp) => {
   return jwt.sign(
     {
-      id: organization.id,
-      name: organization.name,
+      id: user.id,
+      name: user.name,
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
@@ -79,37 +79,37 @@ organizationController.createAccount = async (req, res) => {
 
 //Update organization account
 organizationController.updateAccount = async (req, res) => {
-  const organization = req.organization;
-  try {
-    const { name, email, description, image, phone_number } = req.body;
+  const organization = req.user;
+  const { password, confirmPassword, phone_number, description, image } =
+    req.body;
 
-    // Find the organization by ID
+  try {
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
     const updatedOrganization = await OrganizationModel.findById(
       organization.id
     );
-
     if (!updatedOrganization) {
-      return res.status(404).json({ error: "Organization not found" });
+      return res.status(404).json({ message: "Organization not found" });
     }
 
-    // Update organization details
-    organization.name = name;
-    organization.email = email;
-    organization.description = description;
-    organization.image = image;
-    organization.phone_number = phone_number;
+    updatedOrganization.phone_number = phone_number;
+    updatedOrganization.description = description;
+    updatedOrganization.image = image;
 
-    // Save the updated organization
-    await organization.save();
+    await updatedOrganization.save();
 
-    res.json({
-      message: "Organization details updated successfully",
-      organization,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error while updating organization details", error });
+    if (password) {
+      // Update the password hash if a new password is provided
+      updatedOrganization.password = password;
+      await updatedOrganization.save();
+    }
+
+    res.json({ message: "Organization profile updated successfully" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -145,23 +145,29 @@ organizationController.signin = async (req, res) => {
   try {
     const organization = await OrganizationModel.findOne({
       $or: [{ email: emailOrUsername }, { name: emailOrUsername }],
-    }).populate("account");
+    });
     if (!organization) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    if (!organization.account) {
-      return res.status(400).json({ error: "Couldn't find your account" });
-    }
-    const passwordMatches = await user.account.comparePassword(
-      password,
-      organization.password_hash
-    );
+
+    // Compare the provided password with the hashed password in the organization object
+    const passwordMatches = await organization.comparePassword(password);
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    const token = await generateJWT(user, jwtExp);
+
+    const token = await generateJWT(organization, jwtExp);
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+organizationController.signout = (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.redirect("http://localhost:3000/api-docs");
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -306,35 +312,37 @@ organizationController.deleteEvent = async (req, res) => {
 };
 
 organizationController.updateAccount = async (req, res) => {
-  try {
-    const { organizationId } = req.params;
-    const { name, email, description, phone_number, image } = req.body;
+  const organization = req.user;
+  const { password, confirmPassword, phone_number, description, image } =
+    req.body;
 
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
+  try {
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    const updatedOrganization = await OrganizationModel.findById(
+      organization.id
+    );
+    if (!updatedOrganization) {
       return res.status(404).json({ message: "Organization not found" });
     }
 
-    // Update account details
-    if (name) organization.name = name;
-    if (email) organization.email = email;
-    if (description) organization.description = description;
-    if (phone_number) organization.phone_number = phone_number;
-    if (image) organization.image = image;
+    updatedOrganization.phone_number = phone_number;
+    updatedOrganization.description = description;
+    updatedOrganization.image = image;
 
-    // Save the updated organization details
-    await organization.save();
+    await updatedOrganization.save();
 
-    res.json({
-      message: "Organization account updated successfully",
-      organization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while updating organization account",
-      error,
-    });
+    if (password) {
+      // Update the password hash if a new password is provided
+      updatedOrganization.password = password;
+      await updatedOrganization.save();
+    }
+
+    res.json({ message: "Organization profile updated successfully" });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 

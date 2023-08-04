@@ -17,14 +17,14 @@ routes.get("/:id", eventController.getEventById);
 
 // Attend an event (authentication required)
 routes.post(
-  "/attend",
+  "/attend/:eventId",
   authentication.authMiddleware,
   eventController.attendEvent
 );
 
 // Unattend an event (authentication required)
 routes.post(
-  "/unattend",
+  "/unattend/:eventId",
   authentication.authMiddleware,
   eventController.unattendEvent
 );

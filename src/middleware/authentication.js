@@ -28,13 +28,15 @@ const isAdminMiddleware = (req, res, next) => {
 
 const isAuthenticated = (req, res, next) => {
   const token = req.cookies.jwt;
-  if(token) {
-    if (req.path.includes('/signin') || 
-        req.path.includes('/signup') || 
-        req.path.includes('/forgotPassword') || 
-        req.path.includes('/resetPassword')) {
-          return res.redirect(`${process.env.DOMAIN}/api-docs`);
-        }
+  if (token) {
+    if (
+      req.path.includes("/signin") ||
+      req.path.includes("/signup") ||
+      req.path.includes("/forgotPassword") ||
+      req.path.includes("/resetPassword")
+    ) {
+      return res.redirect(`${process.env.DOMAIN}/api-docs`);
+    }
   }
   next();
 };
@@ -48,7 +50,7 @@ const authMiddleware = (req, res, next) => {
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decodedToken; // Attach the user to the request object for later uses
-    console.log(req.user)
+    console.log(req.user);
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
@@ -66,7 +68,7 @@ const isOrganization = async (req, res, next) => {
   const user = req.user;
 
   try {
-    const organization = await OrganizationModel.findOne({ email: user.email });
+    const organization = await OrganizationModel.findOne({ name: user.name }); // Change 'email' to 'name'
     if (!organization) {
       return res
         .status(401)
