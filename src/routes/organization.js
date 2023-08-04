@@ -11,9 +11,16 @@ const authentication = require("../middleware/authentication");
 // Create an account (organization)
 routes.post("/create-account", OrganizationController.createAccount);
 
+// Signin to the organization account
+routes.post(
+  "/signin",
+  authentication.isAuthenticated,
+  OrganizationController.signin
+);
+
 // Update organization details
 routes.put(
-  "/:organizationId/update-account",
+  "/updateAccount",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.updateAccount
@@ -21,17 +28,10 @@ routes.put(
 
 // Delete organization account
 routes.delete(
-  "/:organizationId",
+  "/",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.deleteAccount
-);
-
-// Signin to the organization account
-routes.post(
-  "/signin",
-  authentication.authMiddleware,
-  OrganizationController.signin
 );
 
 // Create an event for the organization
@@ -62,6 +62,10 @@ routes.delete(
   authentication.isEventOwner,
   OrganizationController.deleteEvent
 );
+
+
+//Sign out from Organization account
+routes.post("/signOut", authentication.authMiddleware, authentication.isOrganization, OrganizationController.signout)
 
 // Get Organization by ID
 routes.get("/:organizationId", OrganizationController.getOrganizationById);

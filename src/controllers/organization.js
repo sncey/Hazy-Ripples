@@ -2,9 +2,7 @@ const OrganizationModel = require("../db/models/organization");
 const EventModel = require("../db/models/event");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/email");
-const resetPasswordTemplate = require("../emailTemplates/resetPassword");
 const welcomeTemplate = require("../emailTemplates/welcome");
-const organization = require("../db/models/organization");
 
 const organizationController = {};
 
@@ -20,18 +18,16 @@ const generateJWT = (organization, jwtExp) => {
   );
 };
 
-// organizationController.getOrganizations = async (req, res) => {
-//     try {
-//         const organizations = await OrganizationModel.find();
-//         res.json(organizations);
-//     } catch (error) {
-//         res.status(500).json({
-//             message: 'Error while getting organizations',
-//             error
-//         });
-//     }
-// };
+const checkErorrCode = (err, res) => {
+  if (err.code === 11000) {
+    return res
+      .status(500)
+      .json({ error: `${Object.keys(err.keyValue)} already used` });
+  }
+  return res.status(400).json({ error: err.message });
+};
 
+//Sign Up
 organizationController.createAccount = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
   const {
@@ -73,72 +69,12 @@ organizationController.createAccount = async (req, res) => {
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: 'Error in server'});
+    console.log(err)
+    checkErorrCode(err, res)
   }
 };
 
-//Update organization account
-organizationController.updateAccount = async (req, res) => {
-  const organization = req.organization;
-  try {
-    const { name, email, description, image, phone_number } = req.body;
-
-    // Find the organization by ID
-    const updatedOrganization = await OrganizationModel.findById(
-      organization.id
-    );
-
-    if (!updatedOrganization) {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-
-    // Update organization details
-    organization.name = name;
-    organization.email = email;
-    organization.description = description;
-    organization.image = image;
-    organization.phone_number = phone_number;
-
-    // Save the updated organization
-    await organization.save();
-
-    res.json({
-      message: "Organization details updated successfully",
-      organization,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: error.message  });
-  }
-};
-
-// Delete organization account
-organizationController.deleteAccount = async (req, res) => {
-  const organization = req.organization;
-  try {
-    // Find the organization by ID
-    const deletedOrganization = await OrganizationModel.findById(
-      organization.id
-    );
-
-    if (!deletedOrganization) {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-
-    // Delete the organization
-    await organization.remove();
-
-    res.json({ message: "Organization account deleted successfully" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error while deleting organization account", error });
-  }
-};
-
+//Sign In
 organizationController.signin = async (req, res) => {
   const { emailOrUsername, password, rememberMe } = req.body;
   const jwtExp = rememberMe
@@ -147,25 +83,91 @@ organizationController.signin = async (req, res) => {
   try {
     const organization = await OrganizationModel.findOne({
       $or: [{ email: emailOrUsername }, { name: emailOrUsername }],
-    }).populate("account");
+    });
     if (!organization) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    if (!organization.account) {
-      return res.status(400).json({ error: "Couldn't find your account" });
-    }
-    const passwordMatches = await user.account.comparePassword(
-      password,
-      organization.password_hash
-    );
+
+    // Compare the provided password with the hashed password in the organization object
+    const passwordMatches = await organization.comparePassword(password);
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-    const token = await generateJWT(user, jwtExp);
+
+    const token = await generateJWT(organization, jwtExp);
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+};
+
+// Sign out
+organizationController.signout = (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.redirect("http://localhost:3000/api-docs");
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+//Update organization account
+organizationController.updateAccount = async (req, res) => {
+  try {
+    console.log(req.organization); // Make sure req.organization is properly defined when calling the function
+    const { name, email, description, image, phone_number } = req.body;
+
+    // Find the organization by ID
+    const updatedOrganization = await OrganizationModel.findById(
+      req.organization._id
+    );
+
+    if (!updatedOrganization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    // Update organization details
+    updatedOrganization.name = name;
+    updatedOrganization.email = email;
+    updatedOrganization.description = description;
+    updatedOrganization.image = image;
+    updatedOrganization.phone_number = phone_number;
+
+    // Save the updated organization
+    await updatedOrganization.save();
+
+    res.json({
+      message: "Organization details updated successfully",
+      organization: updatedOrganization,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Error while updating organization details", error });
+  }
+  
+};
+
+// Delete organization account
+organizationController.deleteAccount = async (req, res) => {
+  const organization = req.organization;
+  try {
+    // Find the organization by ID
+    const deletedOrganization = await OrganizationModel.findByIdAndDelete(
+      organization.id
+    );
+
+    if (!deletedOrganization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+    res.clearCookie("jwt");
+    // res.json({ message: "Organization account deleted successfully" });
+    res.redirect("http://localhost:3000/api-docs");
+  } catch (error) {
+    res
+      .status(422)
+      .json({ error: "Error while deleting organization account" });
   }
 };
 
@@ -307,38 +309,6 @@ organizationController.deleteEvent = async (req, res) => {
   }
 };
 
-organizationController.updateAccount = async (req, res) => {
-  try {
-    const { organizationId } = req.params;
-    const { name, email, description, phone_number, image } = req.body;
-
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
-    }
-
-    // Update account details
-    if (name) organization.name = name;
-    if (email) organization.email = email;
-    if (description) organization.description = description;
-    if (phone_number) organization.phone_number = phone_number;
-    if (image) organization.image = image;
-
-    // Save the updated organization details
-    await organization.save();
-
-    res.json({
-      message: "Organization account updated successfully",
-      organization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while updating organization account",
-      error,
-    });
-  }
-};
 
 // Get oranization by id
 organizationController.getOrganizationById = async (req, res) => {
