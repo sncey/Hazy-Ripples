@@ -8,7 +8,7 @@ const organization = require("../db/models/organization");
 
 const organizationController = {};
 
-const generateJWT = (user, jwtExp) => {
+const generateJWT = (organization, jwtExp) => {
   return jwt.sign(
     {
       id: organization.id,
@@ -73,7 +73,9 @@ organizationController.createAccount = async (req, res) => {
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
   } catch (err) {
-    checkErorrCode(err, res);
+    res
+      .status(500)
+      .json({ error: 'Error in server'});
   }
 };
 
@@ -109,7 +111,7 @@ organizationController.updateAccount = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Error while updating organization details", error });
+      .json({ error: error.message  });
   }
 };
 

@@ -36,8 +36,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOptions, { explorer
 app.use("/", apiRoutes);
 
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);
 });
 
-module.exports = app;
+module.exports = {app, server};
