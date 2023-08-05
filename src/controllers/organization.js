@@ -175,33 +175,31 @@ organizationController.signout = (req, res) => {
 
 organizationController.createEvent = async (req, res) => {
   try {
-    const organizationId = req.params.organizationId;
     const {
-      eventName,
-      eventDate,
-      eventLocation,
-      eventCategory,
+      title,
+      description,
+      location,
+      category,
       start_date,
       end_date,
-      description,
-      title,
+      image,
     } = req.body;
 
     // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
+    const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Create a new event using the EventModel
     const event = new EventModel({
-      title: title,
-      organizer: organizationId,
-      description: description,
-      location: eventLocation,
-      category: eventCategory,
-      start_date: new Date(start_date),
-      end_date: new Date(end_date),
+      title,
+      organizer: organization._id, // Assign the organization's ID as the organizer
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
     });
 
     // Save the event
@@ -218,7 +216,7 @@ organizationController.createEvent = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error while creating event",
-      error,
+      error: error.message,
     });
   }
 };

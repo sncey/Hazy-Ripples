@@ -6,7 +6,7 @@ const eventSchema = mongoose.Schema({
     required: true,
   },
   organizer: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: "Organization",
   },
@@ -46,19 +46,46 @@ const eventSchema = mongoose.Schema({
       ref: "User",
     },
   ],
-  donations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Donation" }],
   expired: {
     type: Boolean,
     default: false,
   },
 });
 
-// Pre-save middleware to update the 'expired' property based on end_date
+// // Pre-save middleware to update the 'expired' property based on end_date
+// eventSchema.pre("save", function (next) {
+//   const currentTime = new Date();
+//   if (this.isModified("end_date") || this.isNew) {
+//     // Validate the end_date
+//     if (this.end_date < currentTime) {
+//       return next(new Error("End date cannot be in the past"));
+//     }
+//   }
+//   if (this.isModified("start_date") || this.isNew) {
+//     // Validate the end_date
+//     if (this.start_date < currentTime) {
+//       return next(new Error("Start date cannot be in the past"));
+//     }
+//   }
+//   next();
+// });
 eventSchema.pre("save", function (next) {
   const currentTime = new Date();
-  if (this.end_date < currentTime) {
-    this.expired = true;
+
+  if (
+    (this.isModified("end_date") || this.isNew) &&
+    this.end_date < currentTime
+  ) {
+    return next(new Error("End date cannot be in the past"));
   }
+
+  if (
+    (this.isModified("start_date") || this.isNew) &&
+    this.start_date < currentTime
+  ) {
+    return next(new Error("Start date cannot be in the past"));
+  }
+
   next();
 });
 

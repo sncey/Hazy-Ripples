@@ -63,9 +63,12 @@ eventController.getEventById = async (req, res) => {
 eventController.attendEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const user = req.user;
     // Check if the event exists and is not expired
-    const event = await EventModel.findById(eventId).populate("");
+    const event = await EventModel.findById(eventId);
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     if (!event || event.expired) {
       return res
         .status(404)
@@ -77,6 +80,7 @@ eventController.attendEvent = async (req, res) => {
         .status(400)
         .json({ message: "You are already attending this event" });
     }
+
     // Add the event to the user's events array
     user.events.push(eventId);
     await user.save();
@@ -92,9 +96,12 @@ eventController.attendEvent = async (req, res) => {
 eventController.unattendEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const user = req.user;
     // Check if the event exists and is not expired
     const event = await EventModel.findById(eventId);
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     if (!event || event.expired) {
       return res
         .status(404)
