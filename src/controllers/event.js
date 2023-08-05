@@ -31,12 +31,15 @@ eventController.getExpiredEvents = async (req, res) => {
 // Get ordered events (newest or oldest based on the query)
 eventController.getOrderedEvents = async (req, res) => {
   try {
-    const { order } = req.params;
-    const query = { expired: false };
+    const { order } = req.query;
+    // Validate the 'order' parameter
+    if (order !== "nearest" && order !== "furthest") {
+      return res.status(400).json({ error: "Invalid order parameter" });
+    }
     // Add sorting criteria to the query based on 'order' parameter
     const sortingCriteria =
-      order === "newest" ? { start_date: -1 } : { start_date: 1 };
-    const events = await EventModel.find(query)
+      order === "furthest" ? { start_date: -1 } : { start_date: 1 };
+    const events = await EventModel.find({ expired: false })
       .sort(sortingCriteria)
       .populate("organizer");
     res.json(events);
@@ -196,32 +199,58 @@ eventController.filterEventsByDate = async (req, res) => {
     });
   }
 };
+// eventController.searchEventsByQuery = async (req, res) => {
+//   try {
+//     const { query, startDate } = req.query;
+//     const lowerCaseQuery = query.toLowerCase();
+//     const regex = new RegExp(lowerCaseQuery, "i"); // 'i' flag makes it case-insensitive
+
+//     // Convert startDate to a Date object
+//     const parsedStartDate = startDate ? new Date(startDate) : null;
+
+//     let events;
+//     if (parsedStartDate) {
+//       events = await EventModel.find({
+//         $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+//         start_date: { $gte: parsedStartDate }, // Filter events with start_date greater than or equal to parsedStartDate
+//       });
+//     } else {
+//       events = await EventModel.find({
+//         $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+//       });
+//     }
+
+//     res.json(events);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Error while searching for events", error });
+//   }
+// };
+
 eventController.searchEventsByQuery = async (req, res) => {
   try {
-    const { query, startDate } = req.query;
-    const lowerCaseQuery = query.toLowerCase();
-    const regex = new RegExp(lowerCaseQuery, "i"); // 'i' flag makes it case-insensitive
+    const query = req.query;
 
-    // Convert startDate to a Date object
-    const parsedStartDate = startDate ? new Date(startDate) : null;
-
-    let events;
-    if (parsedStartDate) {
-      events = await EventModel.find({
-        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
-        start_date: { $gte: parsedStartDate }, // Filter events with start_date greater than or equal to parsedStartDate
-      });
-    } else {
-      events = await EventModel.find({
-        $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
-      });
+    if (!query) {
+      return res.status(400).json({ error: "Query parameter is required" });
     }
+
+    const searchRegex = new RegExp(query, "i"); // Case-insensitive search regex
+
+    const events = await EventModel.find({
+      $or: [
+        { title: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+        { location: { $regex: searchRegex } },
+        { category: { $regex: searchRegex } },
+      ],
+      expired: false,
+    }).populate("organizer");
 
     res.json(events);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error while searching for events", error });
+    res.status(500).json({ error: "Error while searching events" });
   }
 };
 

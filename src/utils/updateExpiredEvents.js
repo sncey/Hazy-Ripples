@@ -21,16 +21,7 @@ const EventModel = require("../db/models/event");
 
 const updateExpiredEvents = async () => {
   try {
-    console.log("Running updateExpiredEvents...");
     const currentTime = new Date();
-    console.log("Current time:", currentTime);
-
-    // Log the documents that match the criteria
-    const matchingDocuments = await EventModel.find({
-      end_date: { $lt: currentTime },
-      expired: false,
-    });
-    console.log("Matching documents:", matchingDocuments);
 
     // Update the documents and execute the update operation
     const result = await EventModel.updateMany(
@@ -45,9 +36,9 @@ const updateExpiredEvents = async () => {
 };
 
 // Schedule the function to run daily at midnight (0:00)
-cron.schedule("* * * * *", () => {
+cron.schedule("*/15 * * * *", () => {
   updateExpiredEvents();
-  console.log("Running a task every minute");
+  console.log("Running a task every 15 minute");
 });
 
 module.exports = updateExpiredEvents;
