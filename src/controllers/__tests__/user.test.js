@@ -150,6 +150,7 @@ describe('POST /user/signin', () => {
   // Disconnect from the database after running the tests
   afterAll(async () => {
     await mongoose.connection.close();
+    await server.close()
   });
 
   beforeEach(() => {
