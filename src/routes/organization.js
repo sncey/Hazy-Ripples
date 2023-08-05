@@ -9,22 +9,10 @@ const authentication = require("../middleware/authentication");
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
-routes.post("/create-account", OrganizationController.createAccount);
-
-// Update organization details
-routes.put(
-  "/:organizationId/update-account",
-  authentication.authMiddleware,
-  authentication.isOrganization,
-  OrganizationController.updateAccount
-);
-
-// Delete organization account
-routes.delete(
-  "/:organizationId",
-  authentication.authMiddleware,
-  authentication.isOrganization,
-  OrganizationController.deleteAccount
+routes.post(
+  "/signup",
+  authentication.isAuthenticated,
+  OrganizationController.createAccount
 );
 
 // Signin to the organization account
@@ -34,16 +22,28 @@ routes.post(
   OrganizationController.signin
 );
 
-// Signout from the organization account
-routes.post(
-  "/signout",
+// PUBLIC Get Organization by ID
+routes.get("/:organizationId", OrganizationController.getOrganizationById);
+
+// Update organization details
+routes.put(
+  "/updateAccount",
   authentication.authMiddleware,
-  OrganizationController.signout
+  authentication.isOrganization,
+  OrganizationController.updateAccount
+);
+
+// Delete organization account
+routes.delete(
+  "/",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.deleteAccount
 );
 
 // Create an event for the organization
 routes.post(
-  "/create-event",
+  "/createEvent",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.createEvent
@@ -70,8 +70,13 @@ routes.delete(
   OrganizationController.deleteEvent
 );
 
-// Get Organization by ID
-routes.get("/:organizationId", OrganizationController.getOrganizationById);
+//Sign out from Organization account
+routes.post(
+  "/signOut",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.signout
+);
 
 // Get users attending the organization's events
 routes.get(

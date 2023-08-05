@@ -40,8 +40,8 @@ app.use("/", apiRoutes);
 // Start the cron job
 updateExpiredEvents();
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);
 });
 
-module.exports = app;
+module.exports = { app, server };

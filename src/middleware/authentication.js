@@ -50,7 +50,7 @@ const authMiddleware = (req, res, next) => {
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decodedToken; // Attach the user to the request object for later uses
-    console.log(req.user);
+    // console.log(req.user)
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
@@ -68,13 +68,13 @@ const isOrganization = async (req, res, next) => {
   const user = req.user;
 
   try {
-    const organization = await OrganizationModel.findOne({ name: user.name }); // Change 'email' to 'name'
-    if (!organization) {
+    const isOrganization = await OrganizationModel.findById({ _id: user.id });
+    if (!isOrganization) {
       return res
         .status(401)
         .json({ error: "Not authorized  as an organization!" });
     }
-    req.organization = organization;
+    req.organization = isOrganization;
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
