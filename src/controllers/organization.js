@@ -174,26 +174,31 @@ organizationController.deleteAccount = async (req, res) => {
 organizationController.createEvent = async (req, res) => {
   try {
     const {
-      organizationId,
-      eventName,
-      eventDate,
-      eventLocation,
-      eventCategory,
+      title,
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
     } = req.body;
 
     // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
+    const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
 
     // Create a new event using the EventModel
     const event = new EventModel({
-      name: eventName,
-      date: eventDate,
-      location: eventLocation,
-      category: eventCategory,
-      createdBy: organizationId,
+      title,
+      organizer: organization._id, // Assign the organization's ID as the organizer
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
     });
 
     // Save the event
