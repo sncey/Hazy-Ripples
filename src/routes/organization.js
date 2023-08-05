@@ -18,6 +18,10 @@ routes.post(
   OrganizationController.signin
 );
 
+// PUBLIC Get Organization by ID
+routes.get("/:organizationId", OrganizationController.getOrganizationById);
+
+
 // Update organization details
 routes.put(
   "/updateAccount",
@@ -36,7 +40,7 @@ routes.delete(
 
 // Create an event for the organization
 routes.post(
-  "/organizationId/createEvent",
+  "/createEvent",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.createEvent
@@ -67,8 +71,6 @@ routes.delete(
 //Sign out from Organization account
 routes.post("/signOut", authentication.authMiddleware, authentication.isOrganization, OrganizationController.signout)
 
-// Get Organization by ID
-routes.get("/:organizationId", OrganizationController.getOrganizationById);
 
 // Get users attending the organization's events
 routes.get(

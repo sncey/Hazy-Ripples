@@ -73,7 +73,6 @@ const isOrganization = async (req, res, next) => {
         .json({ error: "Not authorized  as an organization!" });
     }
     req.organization = isOrganization;
-    console.log(req.organization)
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
