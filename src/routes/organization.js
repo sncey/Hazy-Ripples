@@ -36,7 +36,7 @@ routes.delete(
 
 // Create an event for the organization
 routes.post(
-  "/create-event",
+  "/organizationId/createEvent",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.createEvent
