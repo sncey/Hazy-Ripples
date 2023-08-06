@@ -58,13 +58,13 @@ function validatePasswordStrength(password) {
   return passwordRegex.test(password);
 }
 
-organizationSchema.pre('save', async function (next) {
-  if (this.isModified('password') || this.isNew) {
+organizationSchema.pre("save", async function (next) {
+  if (this.isModified("password") || this.isNew) {
     // Validate the password
     if (!validatePasswordStrength(this.password)) {
       return next(
         new Error(
-          'Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long.'
+          "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long."
         )
       );
     }

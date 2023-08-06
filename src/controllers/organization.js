@@ -9,8 +9,8 @@ const organizationController = {};
 const generateJWT = (organization, jwtExp) => {
   return jwt.sign(
     {
-      id: organization.id,
-      name: organization.name,
+      id: user.id,
+      name: user.name,
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
@@ -69,8 +69,8 @@ organizationController.createAccount = async (req, res) => {
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
   } catch (err) {
-    console.log(err)
-    checkErorrCode(err, res)
+    console.log(err);
+    checkErorrCode(err, res);
   }
 };
 
@@ -118,13 +118,11 @@ organizationController.updateAccount = async (req, res) => {
     console.log(req.organization); // Make sure req.organization is properly defined when calling the function
     const { name, email, description, image, phone_number } = req.body;
 
-    // Find the organization by ID
     const updatedOrganization = await OrganizationModel.findById(
       req.organization._id
     );
-
     if (!updatedOrganization) {
-      return res.status(404).json({ error: "Organization not found" });
+      return res.status(404).json({ message: "Organization not found" });
     }
 
     // Update organization details
@@ -146,12 +144,11 @@ organizationController.updateAccount = async (req, res) => {
       .status(500)
       .json({ error: "Error while updating organization details", error });
   }
-  
 };
 
 // Delete organization account
 organizationController.deleteAccount = async (req, res) => {
-  const organization = req.organization;
+  const organization = req.user;
   try {
     // Find the organization by ID
     const deletedOrganization = await OrganizationModel.findByIdAndDelete(
@@ -168,6 +165,15 @@ organizationController.deleteAccount = async (req, res) => {
     res
       .status(422)
       .json({ error: "Error while deleting organization account" });
+  }
+};
+
+organizationController.signout = (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.redirect("http://localhost:3000/api-docs");
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -188,7 +194,6 @@ organizationController.createEvent = async (req, res) => {
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Create a new event using the EventModel
     const event = new EventModel({
       title,
@@ -215,7 +220,7 @@ organizationController.createEvent = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error while creating event",
-      error,
+      error: error.message,
     });
   }
 };
@@ -313,7 +318,6 @@ organizationController.deleteEvent = async (req, res) => {
     });
   }
 };
-
 
 // Get oranization by id
 organizationController.getOrganizationById = async (req, res) => {
