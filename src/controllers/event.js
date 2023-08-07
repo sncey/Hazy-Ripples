@@ -139,6 +139,10 @@ eventController.filterEventsByCategory = async (req, res) => {
       category: { $regex: regex },
       expired: false,
     });
+
+    if (!events || events.length === 0) {
+      return res.status(404).json({ message: "No events found" });
+    }
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -157,6 +161,10 @@ eventController.filterEventsByLocation = async (req, res) => {
       location: { $regex: regex },
       expired: false,
     });
+
+    if (!events || events.length === 0) {
+      return res.status(404).json({ message: "No events found" });
+    }
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -199,34 +207,6 @@ eventController.filterEventsByDate = async (req, res) => {
     });
   }
 };
-// eventController.searchEventsByQuery = async (req, res) => {
-//   try {
-//     const { query, startDate } = req.query;
-//     const lowerCaseQuery = query.toLowerCase();
-//     const regex = new RegExp(lowerCaseQuery, "i"); // 'i' flag makes it case-insensitive
-
-//     // Convert startDate to a Date object
-//     const parsedStartDate = startDate ? new Date(startDate) : null;
-
-//     let events;
-//     if (parsedStartDate) {
-//       events = await EventModel.find({
-//         $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
-//         start_date: { $gte: parsedStartDate }, // Filter events with start_date greater than or equal to parsedStartDate
-//       });
-//     } else {
-//       events = await EventModel.find({
-//         $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
-//       });
-//     }
-
-//     res.json(events);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "Error while searching for events", error });
-//   }
-// };
 
 eventController.searchEventsByQuery = async (req, res) => {
   try {
