@@ -9,11 +9,7 @@ const authentication = require("../middleware/authentication");
 // New routes for organization functionalities related to events
 
 // Create an account (organization)
-routes.post(
-  "/signup",
-  authentication.isAuthenticated,
-  OrganizationController.createAccount
-);
+routes.post("/signup", authentication.isAuthenticated, OrganizationController.createAccount);
 
 // Signin to the organization account
 routes.post(
@@ -22,8 +18,15 @@ routes.post(
   OrganizationController.signin
 );
 
+//Sign out from Organization account
+routes.post("/signOut", authentication.authMiddleware, authentication.isOrganization, OrganizationController.signout)
+
+
 // PUBLIC Get Organization by ID
 routes.get("/:organizationId", OrganizationController.getOrganizationById);
+
+// PUBLIC Get all events created by the organization
+routes.get("/:organizationId/events", OrganizationController.getOrganizationEvents);
 
 // Update organization details
 routes.put(
@@ -49,12 +52,9 @@ routes.post(
   OrganizationController.createEvent
 );
 
-// Get all events created by the organization
-routes.get("/:organizationId/events", OrganizationController.getMyEvents);
-
 // Update an event created by the organization
 routes.put(
-  "/:organizationId/events/:eventId",
+  "/events/:eventId",
   authentication.authMiddleware,
   authentication.isOrganization,
   authentication.isEventOwner,
@@ -63,36 +63,34 @@ routes.put(
 
 // Delete an event created by the organization
 routes.delete(
-  "/:organizationId/events/:eventId",
+  "/events/:eventId",
   authentication.authMiddleware,
   authentication.isOrganization,
   authentication.isEventOwner,
   OrganizationController.deleteEvent
 );
 
-//Sign out from Organization account
-routes.post(
-  "/signOut",
-  authentication.authMiddleware,
-  authentication.isOrganization,
-  OrganizationController.signout
-);
 
-// Get users attending the organization's events
+// PUBLIC Get users attending the organization's events
 routes.get(
   "/:organizationId/attending-users",
-  OrganizationController.getAttendingUsers
+  OrganizationController.getAttendingUsersOfOrgEvents
 );
 
 // Notify users attending the organization's events
 routes.post(
-  "/:organizationId/notify-attending-users",
+  "/notify-attending-users",
+  authentication.authMiddleware,
+  authentication.isOrganization,
   OrganizationController.notifyAttendingUsers
 );
 
 // Notify users attending the organization's events about event changes
 routes.post(
-  "/:organizationId/notify-event-changes",
+  "/:eventId/notify-event-changes",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  authentication.isEventOwner,
   OrganizationController.notifyEventChanges
 );
 

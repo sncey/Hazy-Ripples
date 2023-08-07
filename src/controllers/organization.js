@@ -1,23 +1,21 @@
 const OrganizationModel = require("../db/models/organization");
 const EventModel = require("../db/models/event");
+const UserModel = require('../db/models/user')
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/email");
 const welcomeTemplate = require("../emailTemplates/welcome");
-
 const organizationController = {};
-
 const generateJWT = (organization, jwtExp) => {
   return jwt.sign(
     {
-      id: user.id,
-      name: user.name,
+      id: organization.id,
+      name: organization.name,
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
     process.env.JWT_SECRET
   );
 };
-
 const checkErorrCode = (err, res) => {
   if (err.code === 11000) {
     return res
@@ -26,7 +24,6 @@ const checkErorrCode = (err, res) => {
   }
   return res.status(400).json({ error: err.message });
 };
-
 //Sign Up
 organizationController.createAccount = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
@@ -39,18 +36,14 @@ organizationController.createAccount = async (req, res) => {
     phoneNumber,
     image,
   } = req.body;
-
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match" });
     }
-
     let organization = await OrganizationModel.findOne({ email });
-
     if (organization) {
       return res.status(400).json({ error: `${email} is already used` });
     }
-
     organization = await OrganizationModel.create({
       name,
       email,
@@ -61,19 +54,16 @@ organizationController.createAccount = async (req, res) => {
     });
     // Save the organization
     await organization.save();
-
     const token = await generateJWT(organization, jwtExp);
     const emailText = welcomeTemplate(organization.name);
     sendEmail(email, "Welcome onboard", emailText);
-
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
   } catch (err) {
-    console.log(err);
-    checkErorrCode(err, res);
+    console.log(err)
+    checkErorrCode(err, res)
   }
 };
-
 //Sign In
 organizationController.signin = async (req, res) => {
   const { emailOrUsername, password, rememberMe } = req.body;
@@ -87,13 +77,11 @@ organizationController.signin = async (req, res) => {
     if (!organization) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-
     // Compare the provided password with the hashed password in the organization object
     const passwordMatches = await organization.comparePassword(password);
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
-
     const token = await generateJWT(organization, jwtExp);
     res.cookie("jwt", token, { httpOnly: true });
     res.json(token);
@@ -101,7 +89,6 @@ organizationController.signin = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
-
 // Sign out
 organizationController.signout = (req, res) => {
   try {
@@ -111,30 +98,26 @@ organizationController.signout = (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
-
 //Update organization account
 organizationController.updateAccount = async (req, res) => {
   try {
     console.log(req.organization); // Make sure req.organization is properly defined when calling the function
     const { name, email, description, image, phone_number } = req.body;
-
+    // Find the organization by ID
     const updatedOrganization = await OrganizationModel.findById(
       req.organization._id
     );
     if (!updatedOrganization) {
-      return res.status(404).json({ message: "Organization not found" });
+      return res.status(404).json({ error: "Organization not found" });
     }
-
     // Update organization details
     updatedOrganization.name = name;
     updatedOrganization.email = email;
     updatedOrganization.description = description;
     updatedOrganization.image = image;
     updatedOrganization.phone_number = phone_number;
-
     // Save the updated organization
     await updatedOrganization.save();
-
     res.json({
       message: "Organization details updated successfully",
       organization: updatedOrganization,
@@ -144,17 +127,16 @@ organizationController.updateAccount = async (req, res) => {
       .status(500)
       .json({ error: "Error while updating organization details", error });
   }
+  
 };
-
 // Delete organization account
 organizationController.deleteAccount = async (req, res) => {
-  const organization = req.user;
+  const organization = req.organization;
   try {
     // Find the organization by ID
     const deletedOrganization = await OrganizationModel.findByIdAndDelete(
       organization.id
     );
-
     if (!deletedOrganization) {
       return res.status(404).json({ error: "Organization not found" });
     }
@@ -167,16 +149,7 @@ organizationController.deleteAccount = async (req, res) => {
       .json({ error: "Error while deleting organization account" });
   }
 };
-
-organizationController.signout = (req, res) => {
-  try {
-    res.clearCookie("jwt");
-    res.redirect("http://localhost:3000/api-docs");
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
+// Create an Event
 organizationController.createEvent = async (req, res) => {
   try {
     const {
@@ -194,6 +167,7 @@ organizationController.createEvent = async (req, res) => {
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
+
     // Create a new event using the EventModel
     const event = new EventModel({
       title,
@@ -208,36 +182,31 @@ organizationController.createEvent = async (req, res) => {
 
     // Save the event
     await event.save();
-
     // Update the organization's events array with the new event
     organization.events.push(event._id);
     await organization.save();
-
     res.json({
       message: "Event successfully created",
       event,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Error while creating event",
-      error: error.message,
+      message: "Error while creating event", 
+      error: error.message
     });
   }
 };
-
-organizationController.getMyEvents = async (req, res) => {
+// Gets every events from the organizationId
+organizationController.getOrganizationEvents = async (req, res) => {
   try {
     const { organizationId } = req.params;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find all events created by the organization
     const events = await EventModel.find({ organizer: organizationId });
-
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -246,30 +215,27 @@ organizationController.getMyEvents = async (req, res) => {
     });
   }
 };
-
+// Updates an existing event
 organizationController.updateEvent = async (req, res) => {
   try {
-    const { organizationId, eventId, eventDataToUpdate } = req.body;
-
+    const eventId = req.eventId
+    const { eventDataToUpdate } = req.body;
     // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
+    const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Check if the event exists and is created by the organization
     const event = await EventModel.findOne({
       _id: eventId,
-      organizer: organizationId,
+      organizer: organization.id,
     });
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
-
     // Update the event data
     Object.assign(event, eventDataToUpdate);
     await event.save();
-
     res.json({
       message: "Event successfully updated",
       event,
@@ -277,48 +243,44 @@ organizationController.updateEvent = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error while updating event",
-      error,
+      error: error.message,
     });
   }
 };
-
+// Deletes an existing event
 organizationController.deleteEvent = async (req, res) => {
   try {
-    const { organizationId, eventId } = req.params;
-
+    const {eventId} = req.eventId
     // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
+    const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Check if the event exists and is created by the organization
     const event = await EventModel.findOne({
-      _id: eventId,
-      organizer: organizationId,
+      id: eventId,
+      organizer: organization.id,
     });
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
-
     // Remove the event from the organization's events array
-    organization.events = organization.events.filter(
-      (eventId) => String(eventId) !== String(event._id)
-    );
-    await organization.save();
+    const deletedEvent = await EventModel.findById(event._id);
+    if (!deletedEvent) {
+      return res.json({ message: "Event has already been deleted" });
+    }
 
     // Delete the event from the EventModel collection
-    await event.remove();
+    await EventModel.deleteOne({ _id: event._id });
 
     res.json({ message: "Event successfully deleted" });
   } catch (error) {
     res.status(500).json({
       message: "Error while deleting event",
-      error,
+      error: error.message,
     });
   }
 };
-
 // Get oranization by id
 organizationController.getOrganizationById = async (req, res) => {
   try {
@@ -335,26 +297,35 @@ organizationController.getOrganizationById = async (req, res) => {
     });
   }
 };
-
-organizationController.getAttendingUsers = async (req, res) => {
+organizationController.getAttendingUsersOfOrgEvents = async (req, res) => {
   try {
     const { organizationId } = req.params;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find all events created by the organization
     const events = await EventModel.find({ organizer: organizationId });
+    if (events.length === 0) {
+      return res.status(404).json({ message: "Events not found" });
+    }
+    // Fetch attendees for each event
+    const eventsWithAttendees = await Promise.all(
+      events.map(async (event) => {
+        const attendees = await UserModel.find(
+          { _id: { $in: event.attendees } },
+          { username: 1 }
+        ).lean();
 
-    // Get all users attending the organization's events
-    const attendees = await UserModel.find({
-      _id: { $in: events.flatMap((event) => event.attendees) },
-    });
+        return {
+          eventName: event.title, // Use 'title' field as the event name
+          attendees: attendees.map((user) => user.username),
+        };
+      })
+    );
 
-    res.json(attendees);
+    res.json(eventsWithAttendees);
   } catch (error) {
     res.status(500).json({
       message: "Error while fetching attending users",
@@ -362,16 +333,20 @@ organizationController.getAttendingUsers = async (req, res) => {
     });
   }
 };
-
 organizationController.notifyAttendingUsers = async (req, res) => {
   try {
-    const { organizationId } = req.params;
+    const organization  = req.organization;
     const { message } = req.body;
 
-    // Fetch users attending the organization's events
-    const attendees = await organizationController.getAttendingUsers(req, res);
+    const events = await EventModel.find({ organizer: organization.id });
+    if (events.length === 0) {
+      return res.status(404).json({ message: "Events not found" });
+    }
 
-    // Simulate notification for demonstration purposes (You will likely use a notification service or other method in a real application)
+    const attendees = await UserModel.find({
+      _id: { $in: events.flatMap((event) => event.attendees) },
+    });
+
     attendees.forEach((user) => {
       console.log(
         `Notifying user ${user.name} (${user.email}) - Message: ${message}`
@@ -386,22 +361,25 @@ organizationController.notifyAttendingUsers = async (req, res) => {
     });
   }
 };
-
 organizationController.notifyEventChanges = async (req, res) => {
   try {
-    const { organizationId } = req.params;
-    const { eventId, message } = req.body;
+    const eventId = req.eventId
+    const { message } = req.body;
 
+    const event = await EventModel.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
     // Fetch users attending the organization's events
-    const attendees = await organizationController.getAttendingUsers(req, res);
-
+    const attendees = await UserModel.find({
+      _id: { $in: event.attendees },
+    });
     // Simulate notification for demonstration purposes (You will likely use a notification service or other method in a real application)
     attendees.forEach((user) => {
       console.log(
-        `Notifying user ${user.name} (${user.email}) about changes to event ${eventId} - Message: ${message}`
+        `Notifying user ${user.username} (${user.email}) about changes to event ${eventId} - Message: ${message}`
       );
     });
-
     res.json({
       message: "Notification sent to attending users about event changes",
     });
@@ -412,24 +390,20 @@ organizationController.notifyEventChanges = async (req, res) => {
     });
   }
 };
-
 organizationController.filterEventsByCategory = async (req, res) => {
   try {
     const { organizationId } = req.params;
     const { category } = req.query;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find events created by the organization with the specified category
     const events = await EventModel.find({
       organizer: organizationId,
       category,
     });
-
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -438,24 +412,20 @@ organizationController.filterEventsByCategory = async (req, res) => {
     });
   }
 };
-
 organizationController.filterEventsByLocation = async (req, res) => {
   try {
     const { organizationId } = req.params;
     const { location } = req.query;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find events created by the organization with the specified location
     const events = await EventModel.find({
       organizer: organizationId,
       location,
     });
-
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -464,24 +434,20 @@ organizationController.filterEventsByLocation = async (req, res) => {
     });
   }
 };
-
 organizationController.filterEventsByDate = async (req, res) => {
   try {
     const { organizationId } = req.params;
     const { date } = req.query;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find events created by the organization with the specified date
     const events = await EventModel.find({
       organizer: organizationId,
       start_date: { $gte: new Date(date) },
     });
-
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -490,18 +456,15 @@ organizationController.filterEventsByDate = async (req, res) => {
     });
   }
 };
-
 organizationController.searchEvents = async (req, res) => {
   try {
     const { organizationId } = req.params;
     const { query } = req.query;
-
     // Check if the organization exists
     const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     // Find events created by the organization matching the search query in the title or description
     const events = await EventModel.find({
       organizer: organizationId,
@@ -510,7 +473,6 @@ organizationController.searchEvents = async (req, res) => {
         { description: { $regex: query, $options: "i" } },
       ],
     });
-
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -519,27 +481,22 @@ organizationController.searchEvents = async (req, res) => {
     });
   }
 };
-
 // Add a rating for an organization
 organizationController.addRating = async (req, res) => {
   try {
     const { id } = req.params;
     const { user, rating, review } = req.body;
-
     // Validate rating value (assuming the rating is a number between 1 and 5)
     if (typeof rating !== "number" || rating < 1 || rating > 5) {
       return res.status(400).json({
         error: "Invalid rating value. Please provide a number between 1 and 5.",
       });
     }
-
     // Find the organization by ID
     const organization = await OrganizationModel.findById(id);
-
     if (!organization) {
       return res.status(404).json({ error: "Organization not found" });
     }
-
     // Update the organization's rating based on the new rating value
     const totalRatings = organization.rating || 0;
     const totalUsersRated = organization.totalUsersRated || 0;
@@ -547,11 +504,9 @@ organizationController.addRating = async (req, res) => {
     const newTotalUsersRated = totalUsersRated + 1;
     organization.rating = newTotalRatings / newTotalUsersRated;
     organization.totalUsersRated = newTotalUsersRated;
-
     // Add the rating to the organization's ratings array
     organization.ratings.push({ user, rating, review });
     await organization.save();
-
     res.json({ message: "Rating added successfully", organization });
   } catch (error) {
     res
@@ -559,25 +514,20 @@ organizationController.addRating = async (req, res) => {
       .json({ error: "Error while adding rating for the organization", error });
   }
 };
-
 // Get ratings for an organization
 organizationController.getRatings = async (req, res) => {
   try {
     const { id } = req.params;
-
     const organization = await OrganizationModel.findById(id).populate(
       "ratings.user",
       "name"
     ); // Populate user field with user's name
-
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-
     res.json(organization.ratings);
   } catch (error) {
     res.status(500).json({ message: "Error while getting ratings", error });
   }
 };
-
 module.exports = organizationController;
