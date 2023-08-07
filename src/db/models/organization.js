@@ -39,8 +39,8 @@ const organizationSchema = mongoose.Schema({
   ratings: [
     {
       user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
+        required: true,
       },
       rating: {
         type: Number,

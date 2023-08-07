@@ -93,11 +93,15 @@ const isOrganization = async (req, res, next) => {
 //and user now we can check its the owner of the event
 const isEventOwner = async (req, res, next) => {
   const organization = req.organization;
-  const eventId = req.params.id;
+  const eventId = req.params.eventId;
   try {
     const event = await EventModel.findById(eventId);
+    if(!event){
+      res.status(403).send("couldnt find event");
+    }
     if (event && event.organizer.equals(organization._id)) {
       // Organization is the owner of the event
+      req.eventId = eventId
       next();
     } else {
       // Organization is not the owner of the event
@@ -112,6 +116,11 @@ const isEventOwner = async (req, res, next) => {
 //isEventOwner is a middleware function that checks if the Organization is the owner of the event. :)
 //this function should be used after the authMiddleware and isOrganization functions.
 // means that the user is already authenticated and is an organization but checks if it's the owner of the event.
+
+//IMPORTANT!!
+//The `isEventOwner` function is assigning req.eventId to the eventId.
+//IMPORTANT!!
+
 
 module.exports = {
   isAdminMiddleware,
