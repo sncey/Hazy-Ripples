@@ -101,7 +101,6 @@ organizationController.signout = (req, res) => {
 //Update organization account
 organizationController.updateAccount = async (req, res) => {
   try {
-    console.log(req.organization); // Make sure req.organization is properly defined when calling the function
     const { name, email, description, image, phone_number } = req.body;
     // Find the organization by ID
     const updatedOrganization = await OrganizationModel.findById(

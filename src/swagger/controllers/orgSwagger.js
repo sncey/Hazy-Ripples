@@ -302,7 +302,7 @@
  *       200:
  *         description: Returns the details of the specified organization.
  *         schema:
- *           $ref: "#/definitions/Organization"
+ *           $ref: "#/components/schemas/Organization"
  *       401:
  *         description: Unauthorized. Returns an error message in the response body.
  *         content:
