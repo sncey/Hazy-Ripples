@@ -10,6 +10,18 @@ routes.get(
   adminController.adminOnlyRoute
 );
 
+routes.get(
+  "/users",
+  authentication.isAdminMiddleware,
+  adminController.getAllUsers
+);
+
+routes.get(
+  "/users/:userId",
+  authentication.isAdminMiddleware,
+  adminController.getAllUsers
+);
+
 // Routes for managing users (admin privilege)
 routes.delete(
   "/users/:userId",
