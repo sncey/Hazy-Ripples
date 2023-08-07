@@ -104,18 +104,20 @@ routes.get(
 
 // Search for events
 routes.get(
-  "/:organizationId/events/search",
+  "/events/search",
+  authentication.authMiddleware,
+  authentication.isOrganization,
   OrganizationController.searchEvents
 );
 
 // POST route to add a rating for an organization
 routes.post(
-  "/:organizationId/rate",
+  "/rate/:organizationId",
   authentication.authMiddleware,
   OrganizationController.addRating
 );
 
 // GET route to get ratings for an organization
-routes.get("/:organizationId/ratings", OrganizationController.getRatings);
+routes.get("/rating/:organizationId", OrganizationController.getRatings);
 
 module.exports = routes;

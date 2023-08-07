@@ -432,13 +432,9 @@ organizationController.filterEvents = async (req, res) => {
 };
 organizationController.searchEvents = async (req, res) => {
   try {
-    const { organizationId } = req.params;
+    const  organizationId  = req.organization.id;
     const { query } = req.query;
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
-    }
+    
     // Find events created by the organization matching the search query in the title or description
     const events = await EventModel.find({
       organizer: organizationId,
@@ -458,8 +454,9 @@ organizationController.searchEvents = async (req, res) => {
 // Add a rating for an organization
 organizationController.addRating = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { user, rating, review } = req.body;
+    const {organizationId} = req.params
+    const { rating, review } = req.body;
+    const user = req.user
     // Validate rating value (assuming the rating is a number between 1 and 5)
     if (typeof rating !== "number" || rating < 1 || rating > 5) {
       return res.status(400).json({
@@ -467,41 +464,45 @@ organizationController.addRating = async (req, res) => {
       });
     }
     // Find the organization by ID
-    const organization = await OrganizationModel.findById(id);
+    const organization = await OrganizationModel.findById(organizationId);
     if (!organization) {
       return res.status(404).json({ error: "Organization not found" });
     }
-    // Update the organization's rating based on the new rating value
-    const totalRatings = organization.rating || 0;
-    const totalUsersRated = organization.totalUsersRated || 0;
-    const newTotalRatings = totalRatings + rating;
-    const newTotalUsersRated = totalUsersRated + 1;
-    organization.rating = newTotalRatings / newTotalUsersRated;
-    organization.totalUsersRated = newTotalUsersRated;
+    
     // Add the rating to the organization's ratings array
-    organization.ratings.push({ user, rating, review });
+    organization.ratings.push({ user: user.username, rating, review });
     await organization.save();
-    res.json({ message: "Rating added successfully", organization });
+    res.json({ message: "Rating added successfully", ratings: organization.ratings, });
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Error while adding rating for the organization", error });
+      .json({ error: "Error while adding rating for the organization", error: error.message });
   }
 };
 // Get ratings for an organization
 organizationController.getRatings = async (req, res) => {
   try {
-    const { id } = req.params;
-    const organization = await OrganizationModel.findById(id).populate(
-      "ratings.user",
-      "name"
-    ); // Populate user field with user's name
+    const { organizationId } = req.params;
+    const organization = await OrganizationModel.findById(organizationId)
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
-    res.json(organization.ratings);
+
+    const ratings = organization.ratings;
+    if (ratings.length === 0) {
+      // If there are no ratings, return 0 as the average
+      return res.json("There is no previews rating of this organization, feel free to leave a review");
+    }
+
+    // Calculate the total sum of ratings
+    const totalRatings = ratings.reduce((sum, ratingObj) => sum + ratingObj.rating, 0);
+
+    // Calculate the average rating
+    const average = totalRatings / ratings.length;
+
+    res.json({ average, ratings });
   } catch (error) {
-    res.status(500).json({ message: "Error while getting ratings", error });
+    res.status(500).json({ message: "Error while getting ratings", error: error.message });
   }
 };
 module.exports = organizationController;
