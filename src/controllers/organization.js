@@ -390,69 +390,43 @@ organizationController.notifyEventChanges = async (req, res) => {
     });
   }
 };
-organizationController.filterEventsByCategory = async (req, res) => {
+organizationController.filterEvents = async (req, res) => {
   try {
-    const { organizationId } = req.params;
-    const { category } = req.query;
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
-    }
-    // Find events created by the organization with the specified category
-    const events = await EventModel.find({
+    const organizationId = req.organization.id;
+    const { category, location, date } = req.query;
+    
+    // Create a base query with the common filter for the organization and not expired events
+    const baseQuery = {
       organizer: organizationId,
-      category,
-    });
+      expired: false,
+    };
+
+    // Add additional filters based on the provided query parameters
+    if (category) {
+      const regex = new RegExp(category, "i");
+      baseQuery.category = regex;
+    }
+
+    if (location) {
+      baseQuery.location = location;
+    }
+
+    if (date) {
+      baseQuery.start_date = { $gte: new Date(date) };
+    }
+
+    // Find events based on the combined query
+    const events = await EventModel.find(baseQuery);
+
+    if (!events || events.length === 0) {
+      return res.status(404).json({ message: "Events not found" });
+    }
+
     res.json(events);
   } catch (error) {
     res.status(500).json({
-      message: "Error while filtering events by category",
-      error,
-    });
-  }
-};
-organizationController.filterEventsByLocation = async (req, res) => {
-  try {
-    const { organizationId } = req.params;
-    const { location } = req.query;
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
-    }
-    // Find events created by the organization with the specified location
-    const events = await EventModel.find({
-      organizer: organizationId,
-      location,
-    });
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while filtering events by location",
-      error,
-    });
-  }
-};
-organizationController.filterEventsByDate = async (req, res) => {
-  try {
-    const { organizationId } = req.params;
-    const { date } = req.query;
-    // Check if the organization exists
-    const organization = await OrganizationModel.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({ message: "Organization not found" });
-    }
-    // Find events created by the organization with the specified date
-    const events = await EventModel.find({
-      organizer: organizationId,
-      start_date: { $gte: new Date(date) },
-    });
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while filtering events by date",
-      error,
+      message: "Error while filtering events",
+      error: error.message,
     });
   }
 };

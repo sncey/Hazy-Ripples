@@ -94,22 +94,12 @@ routes.post(
   OrganizationController.notifyEventChanges
 );
 
-// Filter events by category
+// Filter events by category, location and dates
 routes.get(
-  "/:organizationId/events/filter/category/:category",
-  OrganizationController.filterEventsByCategory
-);
-
-// Filter events by location
-routes.get(
-  "/:organizationId/events/filter/location/:location",
-  OrganizationController.filterEventsByLocation
-);
-
-// Filter events by date
-routes.get(
-  "/:organizationId/events/filter/date/:date",
-  OrganizationController.filterEventsByDate
+  "/events/filter",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.filterEvents
 );
 
 // Search for events
