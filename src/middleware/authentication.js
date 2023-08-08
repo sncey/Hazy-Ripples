@@ -99,7 +99,7 @@ const isEventOwner = async (req, res, next) => {
     if(!event){
       res.status(403).send("couldnt find event");
     }
-    if (event && event.organizer.equals(organization._id)) {
+    if (event && event.organizer.equals(organization.id)) {
       // Organization is the owner of the event
       req.eventId = eventId
       next();
