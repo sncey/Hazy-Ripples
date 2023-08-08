@@ -284,6 +284,71 @@
 
 /**
  * @swagger
+ * /organization/{organizationId}:
+ *   get:
+ *     summary: Get organization by ID
+ *     description: Get organization details by its ID.
+ *     tags: [Organization]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the organization to retrieve.
+ *     responses:
+ *       200:
+ *         description: Returns the details of the specified organization.
+ *         schema:
+ *           $ref: "#/components/schemas/Organization"
+ *       401:
+ *         description: Unauthorized. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: Unauthorized
+ *       404:
+ *         description: Organization not found. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: Organization not found
+ *       500:
+ *         description: Internal server error. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: Internal Server Error
+ *
+ * securitySchemes:
+ *   cookieAuth:
+ *     type: apiKey
+ *     in: cookie
+ *     name: jwt
+ */
+
+
+
+
+/**
+ * @swagger
  * /organization/signOut:
  *   post:
  *     summary: Sign out from the organization account

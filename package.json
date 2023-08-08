@@ -9,7 +9,9 @@
   "author": "Ammar-64",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon src/app.js",
+    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "start-backend": "nodemon src/app.js",
+    "start-frontend": "cd front-end && npm start",
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "jsonwebtoken": "^9.0.1",
     "mongodb": "^5.7.0",
     "mongoose": "^7.3.4",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
@@ -33,6 +36,7 @@
     "yarn-upgrade-all": "^0.6.1"
   },
   "devDependencies": {
+    "concurrently": "^8.2.0",
     "eslint": "^8.7.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-node": "^4.1.0",

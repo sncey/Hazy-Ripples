@@ -18,6 +18,16 @@ routes.post(
   OrganizationController.signin
 );
 
+//Sign out from Organization account
+routes.post("/signOut", authentication.authMiddleware, authentication.isOrganization, OrganizationController.signout)
+
+
+// PUBLIC Get Organization by ID
+routes.get("/:organizationId", OrganizationController.getOrganizationById);
+
+// PUBLIC Get all events created by the organization
+routes.get("/:organizationId/events", OrganizationController.getOrganizationEvents);
+
 // Update organization details
 routes.put(
   "/updateAccount",
@@ -36,18 +46,15 @@ routes.delete(
 
 // Create an event for the organization
 routes.post(
-  "/create-event",
+  "/createEvent",
   authentication.authMiddleware,
   authentication.isOrganization,
   OrganizationController.createEvent
 );
 
-// Get all events created by the organization
-routes.get("/:organizationId/events", OrganizationController.getMyEvents);
-
 // Update an event created by the organization
 routes.put(
-  "/:organizationId/events/:eventId",
+  "/events/:eventId",
   authentication.authMiddleware,
   authentication.isOrganization,
   authentication.isEventOwner,
@@ -56,7 +63,7 @@ routes.put(
 
 // Delete an event created by the organization
 routes.delete(
-  "/:organizationId/events/:eventId",
+  "/events/:eventId",
   authentication.authMiddleware,
   authentication.isOrganization,
   authentication.isEventOwner,
@@ -64,62 +71,53 @@ routes.delete(
 );
 
 
-//Sign out from Organization account
-routes.post("/signOut", authentication.authMiddleware, authentication.isOrganization, OrganizationController.signout)
-
-// Get Organization by ID
-routes.get("/:organizationId", OrganizationController.getOrganizationById);
-
-// Get users attending the organization's events
+// PUBLIC Get users attending the organization's events
 routes.get(
   "/:organizationId/attending-users",
-  OrganizationController.getAttendingUsers
+  OrganizationController.getAttendingUsersOfOrgEvents
 );
 
 // Notify users attending the organization's events
 routes.post(
-  "/:organizationId/notify-attending-users",
+  "/notify-attending-users",
+  authentication.authMiddleware,
+  authentication.isOrganization,
   OrganizationController.notifyAttendingUsers
 );
 
 // Notify users attending the organization's events about event changes
 routes.post(
-  "/:organizationId/notify-event-changes",
+  "/:eventId/notify-event-changes",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  authentication.isEventOwner,
   OrganizationController.notifyEventChanges
 );
 
-// Filter events by category
+// Filter events by category, location and dates
 routes.get(
-  "/:organizationId/events/filter/category/:category",
-  OrganizationController.filterEventsByCategory
-);
-
-// Filter events by location
-routes.get(
-  "/:organizationId/events/filter/location/:location",
-  OrganizationController.filterEventsByLocation
-);
-
-// Filter events by date
-routes.get(
-  "/:organizationId/events/filter/date/:date",
-  OrganizationController.filterEventsByDate
+  "/events/filter",
+  authentication.authMiddleware,
+  authentication.isOrganization,
+  OrganizationController.filterEvents
 );
 
 // Search for events
 routes.get(
-  "/:organizationId/events/search",
+  "/events/search",
+  authentication.authMiddleware,
+  authentication.isOrganization,
   OrganizationController.searchEvents
 );
 
 // POST route to add a rating for an organization
 routes.post(
-  "/:organizationId/rate",
+  "/rate/:organizationId",
   authentication.authMiddleware,
   OrganizationController.addRating
 );
 
 // GET route to get ratings for an organization
-routes.get("/:organizationId/ratings", OrganizationController.getRatings);
+routes.get("/rating/:organizationId", OrganizationController.getRatings);
 
 module.exports = routes;

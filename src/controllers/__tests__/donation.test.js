@@ -73,6 +73,10 @@ describe("Donation Controller", () => {
         }, process.env.JWT_SECRET);
     });
 
+    afterAll(() => {
+        server.close();
+    });
+
     // Test for checkout function
     describe("POST /donation/checkout", () => {
         it("should create a checkout session and redirect with token", async () => {

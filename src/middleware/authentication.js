@@ -28,13 +28,15 @@ const isAdminMiddleware = (req, res, next) => {
 
 const isAuthenticated = (req, res, next) => {
   const token = req.cookies.jwt;
-  if(token) {
-    if (req.path.includes('/signin') || 
-        req.path.includes('/signup') || 
-        req.path.includes('/forgotPassword') || 
-        req.path.includes('/resetPassword')) {
-          return res.redirect(`${process.env.DOMAIN}/api-docs`);
-        }
+  if (token) {
+    if (
+      req.path.includes("/signin") ||
+      req.path.includes("/signup") ||
+      req.path.includes("/forgotPassword") ||
+      req.path.includes("/resetPassword")
+    ) {
+      return res.redirect(`${process.env.DOMAIN}/api-docs`);
+    }
   }
   next();
 };
@@ -73,7 +75,6 @@ const isOrganization = async (req, res, next) => {
         .json({ error: "Not authorized  as an organization!" });
     }
     req.organization = isOrganization;
-    console.log(req.organization)
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
@@ -92,11 +93,15 @@ const isOrganization = async (req, res, next) => {
 //and user now we can check its the owner of the event
 const isEventOwner = async (req, res, next) => {
   const organization = req.organization;
-  const eventId = req.params.id;
+  const eventId = req.params.eventId;
   try {
     const event = await EventModel.findById(eventId);
+    if(!event){
+      res.status(403).send("couldnt find event");
+    }
     if (event && event.organizer.equals(organization._id)) {
       // Organization is the owner of the event
+      req.eventId = eventId
       next();
     } else {
       // Organization is not the owner of the event
@@ -111,6 +116,11 @@ const isEventOwner = async (req, res, next) => {
 //isEventOwner is a middleware function that checks if the Organization is the owner of the event. :)
 //this function should be used after the authMiddleware and isOrganization functions.
 // means that the user is already authenticated and is an organization but checks if it's the owner of the event.
+
+//IMPORTANT!!
+//The `isEventOwner` function is assigning req.eventId to the eventId.
+//IMPORTANT!!
+
 
 module.exports = {
   isAdminMiddleware,

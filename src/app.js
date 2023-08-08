@@ -7,7 +7,8 @@ const cookieParser = require("cookie-parser");
 require("./db/connection");
 require("dotenv").config();
 const swaggerOptions = require("./swagger/swaggerOptions"); // Import the Swagger options from the separate file
-
+const updateExpiredEvents = require("./utils/updateExpiredEvents");
+const path = require("path"); // Import the 'path' module
 
 const port = process.env.NODE_LOCAL_PORT || 8080;
 
@@ -29,15 +30,27 @@ middleware.forEach((item) => {
   app.use(item);
 });
 
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerOptions, { explorer: true })
+);
 
+// Serve the React frontend build files
+app.use(express.static(path.join(__dirname, '../front-end/build')));
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOptions, { explorer: true }));
+// Route for the root URL to serve the React app
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../front-end/build/index.html'));
+});
 
 app.use("/", apiRoutes);
 
+// Start the cron job
+updateExpiredEvents();
 
 const server = app.listen(port, () => {
   console.debug(`Server listening on port ${port}`);
 });
 
-module.exports = {app, server};
+module.exports = { app, server };
