@@ -101,6 +101,7 @@ organizationController.signout = (req, res) => {
 //Update organization account
 organizationController.updateAccount = async (req, res) => {
   try {
+    console.log(req.organization); // Make sure req.organization is properly defined when calling the function
     const { name, email, description, image, phone_number } = req.body;
     // Find the organization by ID
     const updatedOrganization = await OrganizationModel.findById(
@@ -218,7 +219,16 @@ organizationController.getOrganizationEvents = async (req, res) => {
 organizationController.updateEvent = async (req, res) => {
   try {
     const eventId = req.eventId
-    const { eventDataToUpdate } = req.body;
+    const {
+      title,
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
+
+    } = req.body;
     // Check if the organization exists
     const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
@@ -233,7 +243,16 @@ organizationController.updateEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
     // Update the event data
-    Object.assign(event, eventDataToUpdate);
+    //Object.assign(event, eventDataToUpdate);
+    
+    event.title=title,
+    event.description=description,
+    event.location=location,
+    event.category=category,
+    event.start_date=start_date,
+    event.end_date=end_date,
+    event.image=image,
+
     await event.save();
     res.json({
       message: "Event successfully updated",
@@ -250,6 +269,16 @@ organizationController.updateEvent = async (req, res) => {
 organizationController.deleteEvent = async (req, res) => {
   try {
     const {eventId} = req.eventId
+    const {
+      title,
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
+      
+    } = req.body;
     // Check if the organization exists
     const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
@@ -268,6 +297,14 @@ organizationController.deleteEvent = async (req, res) => {
     if (!deletedEvent) {
       return res.json({ message: "Event has already been deleted" });
     }
+    event.title=title,
+    event.description=description,
+    event.location=location,
+    event.category=category,
+    event.start_date=start_date,
+    event.end_date=end_date,
+    event.image=image,
+
 
     // Delete the event from the EventModel collection
     await EventModel.deleteOne({ _id: event._id });

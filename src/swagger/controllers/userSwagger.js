@@ -476,7 +476,7 @@
 
 /**
  * @swagger
- * /forgotPassword:
+ * /user/forgotPassword:
  *   get:
  *     summary: Forgot Password
  *     description: Send a forgot password email to the user's registered email address.
@@ -523,7 +523,7 @@
 
 /**
  * @swagger
- * /resetPassword:
+ * /user/resetPassword:
  *   put:
  *     summary: Reset Password
  *     description: Reset the user's password using the provided reset token.
