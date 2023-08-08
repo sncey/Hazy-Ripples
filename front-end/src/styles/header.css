@@ -1,0 +1,38 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+  }
+  
+  .logo {
+    font-size: 24px;
+  }
+  
+  .nav {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .nav-link {
+    background-color: #49ace5;
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border: none;
+    margin-right: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 3px;
+  }
+
+  .nav-button {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
