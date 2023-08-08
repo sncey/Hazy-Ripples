@@ -19,7 +19,7 @@ routes.get(
 routes.get(
   "/users/:userId",
   authentication.isAdminMiddleware,
-  adminController.getAllUsers
+  adminController.getUserById
 );
 
 // Routes for managing users (admin privilege)

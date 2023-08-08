@@ -21,13 +21,23 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  * /admin/users/{userId}:
  *   get:
@@ -55,19 +65,34 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: User not found.
+ *         description: User not found. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: User not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   put:
  *     tags: [Admin]
@@ -89,12 +114,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               password:
- *                 type: string
- *                 description: The new password for the user.
- *               confirmPassword:
- *                 type: string
- *                 description: Confirm the new password for the user.
  *               phoneNumber:
  *                 type: string
  *                 description: The new phone number for the user.
@@ -119,8 +138,6 @@
  *                 type: string
  *                 description: The new avatar URL for the user.
  *             example:
- *               password: new_password123
- *               confirmPassword: new_password123
  *               phoneNumber: +1234567890
  *               birthday: 1990-01-01
  *               username: john_doe
@@ -145,19 +162,34 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: User not found.
+ *         description: User not found. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: User not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   delete:
  *     tags: [Admin]
@@ -195,19 +227,34 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
  *         description: User not found. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: User not found
  *       500:
  *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  * /admin/organizations:
  *   get:
@@ -230,13 +277,23 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  * /admin/organizations/{organizationId}:
  *   get:
@@ -264,19 +321,34 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: Organization not found.
+ *         description: Organization not found. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Organization not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   put:
  *     tags: [Admin]
@@ -337,19 +409,34 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: Organization not found.
+ *         description: Organization not found. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Organization not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   delete:
  *     tags: [Admin]
@@ -376,8 +463,8 @@
  *                   type: string
  *               example:
  *                 message: Organization account deleted successfully
- *       401:
- *         description: Unauthorized. Returns an error message in the response body.
+ *       403:
+ *         description: Forbidden. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
@@ -386,13 +473,7 @@
  *                 error:
  *                   type: string
  *               example:
- *                 error: Unauthorized
- *       403:
- *         description: Forbidden. Returns an error message in the response body.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *                 error: Forbidden
  *       404:
  *         description: Organization not found. Returns an error message in the response body.
  *         content:
@@ -416,11 +497,6 @@
  *               example:
  *                 error: Internal Server Error
  *
- * securitySchemes:
- *   cookieAuth:
- *     type: apiKey
- *     in: cookie
- *     name: jwt
  *
  * /admin/events:
  *   get:
@@ -432,14 +508,34 @@
  *     responses:
  *       200:
  *         description: Successfully fetched all events.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
  *       403:
  *         description: Forbidden. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  * /admin/events/{eventId}:
  *   get:
@@ -458,16 +554,43 @@
  *     responses:
  *       200:
  *         description: Successfully fetched the event.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
  *       403:
  *         description: Forbidden. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: Event not found.
+ *         description: Event not found. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Event not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   put:
  *     tags: [Admin]
@@ -490,21 +613,57 @@
  *             type: object
  *             properties:
  *             example:
- *               name: Updated Event
- *               date: 2023-08-01T18:00:00Z
+ *               title: Updated Event
+ *               description: This is an updated event.
+ *               location: 1234 Updated Street, Vancouver, BC, Canada
+ *               start_date: 2023-08-01T18:00:00Z
+ *               end_date: 2023-08-01T20:00:00Z
+ *               catorgory: Fundraising
  *     responses:
  *       200:
  *         description: Event updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: Event updated successfully
  *       403:
  *         description: Forbidden. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: Event not found.
+ *         description: Event not found. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Event not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
  *
  *   delete:
  *     tags: [Admin]
@@ -521,15 +680,52 @@
  *         description: ID of the event.
  *     responses:
  *       200:
- *         description: Event deleted successfully.
+ *         description: Event deleted successfully. Returns a success message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: Event deleted successfully
  *       403:
  *         description: Forbidden. Returns an error message in the response body.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Forbidden
  *       404:
- *         description: Event not found.
+ *         description: Event not found. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Event not found
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error. Returns an error message in the response body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: Internal Server Error
+ * securitySchemes:
+ *   cookieAuth:
+ *     type: apiKey
+ *     in: cookie
+ *     name: jwt
  */
