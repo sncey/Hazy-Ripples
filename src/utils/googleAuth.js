@@ -121,7 +121,7 @@ const getbirthDay = async (accessToken) => {
 
 const getPhoneNumber = async (accessToken) => {
   const data = await dataRequest(accessToken,"phoneNumbers");
-  const phoneNumberValue = data.phoneNumbers[0]?.canonicalForm;
+  const phoneNumberValue = data.phoneNumbers?.canonicalForm;
   return phoneNumberValue;
 }
 
@@ -160,14 +160,14 @@ passport.use(
           firstname: profile._json.given_name,
           lastname: profile._json.family_name,
           phoneNumber: phoneNumber || "00000000000",
-          gender: gender,
-          birthday: birthday,
+          gender: gender || null,
+          birthday: birthday || null,
         });
         await newUser.save();
 
-        const token = await generateJWT(newUser);
+        const token = generateJWT(newUser);
         const emailText = welcomeTemplate(newUser.username);
-        sendEmail(email, 'Welcome onboard', emailText);
+        sendEmail(newUser.email, 'Welcome onboard', emailText);
         return done(null, { user: newUser, token });
       } catch (error) {
         console.error('Error with Google OAuth:', error);
