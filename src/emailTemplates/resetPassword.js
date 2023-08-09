@@ -1,4 +1,6 @@
-const resetPasswordTemplate = (token,username) => `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head>
+require('dotenv').config();
+
+const resetPasswordTemplate = (token, username) => `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head>
     <!--[if gte mso 9]>
     <xml>
       <o:OfficeDocumentSettings>
@@ -210,7 +212,10 @@ const resetPasswordTemplate = (token,username) => `<html xmlns="http://www.w3.or
       <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
     <div class="v-text-align" align="center">
       <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="" style="height:52px; v-text-anchor:middle; width:205px;" arcsize="2%"  stroke="f" fillcolor="#18163a"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Lato',sans-serif;"><![endif]-->  
-        <a href="http://localhost:3000/user/resetPassword?token=${encodeURIComponent(token)}" target="_blank" class="v-button" style="box-sizing: border-box;display: inline-block;font-family:'Lato',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #18163a; border-radius: 1px;-webkit-border-radius: 1px; -moz-border-radius: 1px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;font-size: 14px;">
+        < a href = "${process.env.DOMAIN}/user/resetPassword?token=${encodeURIComponent(token)}"
+        target = "_blank"
+        class = "v-button"
+        style = "box-sizing: border-box;display: inline-block;font-family:'Lato',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #18163a; border-radius: 1px;-webkit-border-radius: 1px; -moz-border-radius: 1px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;font-size: 14px;" >
           <span style="display:block;padding:15px 40px;line-height:120%;"><span style="font-size: 18px; line-height: 21.6px;">Reset Password</span></span>
         </a>
       <!--[if mso]></center></v:roundrect><![endif]-->

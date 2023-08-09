@@ -197,7 +197,7 @@ userController.deleteProfile = async (req, res) => {
     }
     await AccountModel.findOneAndDelete({ user: user.id });
     res.clearCookie("jwt");
-    res.redirect("http://localhost:3000/api-docs");
+    res.redirect(`${process.env.DOMAIN}/api-docs`);
   } catch (err) {
     res.status(422).json({ error: err.message });
   }
@@ -206,7 +206,7 @@ userController.deleteProfile = async (req, res) => {
 userController.signout = (req, res) => {
   try {
     res.clearCookie("jwt");
-    res.redirect("http://localhost:3000/api-docs");
+    res.redirect(`${process.env.DOMAIN}/api-docs`);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
