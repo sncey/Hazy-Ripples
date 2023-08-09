@@ -1,7 +1,5 @@
 const request = require('supertest');
-const {
-    server
-} = require('../../app');
+const app = require('../../app');
 const UserModel = require('../../db/models/user');
 const AccountModel = require('../../db/models/account');
 const sendEmail = require('../../utils/email');
@@ -37,7 +35,6 @@ describe('POST /user/signup', () => {
   // Disconnect from the database after running the tests
   afterAll(async () => {
     await mongoose.connection.close();
-    await server.close()
   });
 
   beforeEach(() => {
@@ -70,7 +67,7 @@ describe('POST /user/signup', () => {
     AccountModel.prototype.save.mockResolvedValue();
 
     // Make the HTTP request to test the signup endpoint
-    const response = await request(server).post('/user/signup').send(userData);
+    const response = await request(app).post('/user/signup').send(userData);
 
     // console.log(response.body)
 
@@ -108,7 +105,7 @@ describe('POST /user/signup', () => {
         avatar: "string"
     };
 
-    const response = await request(server).post('/user/signup').send(userData);
+    const response = await request(app).post('/user/signup').send(userData);
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('passwords do not match');
@@ -133,7 +130,7 @@ describe('POST /user/signup', () => {
         avatar: "string"
     };
 
-    const response = await request(server).post('/user/signup').send(userData);
+    const response = await request(app).post('/user/signup').send(userData);
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('test@example.com already used');
@@ -154,7 +151,6 @@ describe('POST /user/signin', () => {
   // Disconnect from the database after running the tests
   afterAll(async () => {
     await mongoose.connection.close();
-    await server.close()
   });
 
   beforeEach(() => {
@@ -191,7 +187,7 @@ describe('POST /user/signin', () => {
     };
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(server).post('/user/signin').send(signinData);
+    const response = await request(app).post('/user/signin').send(signinData);
     // Assertions
     expect(response.status).toBe(200);
     expect(response.body).toEqual(expect.any(String)); // We expect the response body to be a string (token)
@@ -228,7 +224,7 @@ describe('POST /user/signin', () => {
     UserModel.findOne.mockResolvedValue(null);
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(server).post('/user/signin').send(signinData);
+    const response = await request(app).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);
@@ -271,7 +267,7 @@ describe('POST /user/signin', () => {
     AccountModel.findOne.mockResolvedValue(null);
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(server).post('/user/signin').send(signinData);
+    const response = await request(app).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);
@@ -318,7 +314,7 @@ describe('POST /user/signin', () => {
     });
 
     // Make the HTTP request to test the signin endpoint
-    const response = await request(server).post('/user/signin').send(signinData);
+    const response = await request(app).post('/user/signin').send(signinData);
 
     // Assertions
     expect(response.status).toBe(400);

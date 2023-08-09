@@ -1,8 +1,6 @@
 require("dotenv").config();
-const path = require('path');
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 const DonationModel = require("../db/models/donation");
-const UserModel = require("../db/models/user");
 const sendEmail = require("../utils/email");
 const donationTemplate = require("../emailTemplates/donation");
 const jwt = require("jsonwebtoken");
@@ -82,11 +80,6 @@ donationController.cancel = async (req, res) => {
     res.clearCookie('pSession');
     res.send('Cancelled');
 }
-
-donationController.getcheckout = async (req, res) => {
-    res.sendFile(path.join(__dirname, 'checkout.html'));
-}
-
 donationController.getDonations = async (req, res) => {
     try {
         const donations = await DonationModel.find({

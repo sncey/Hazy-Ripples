@@ -1,8 +1,6 @@
 const DonationModel = require("../../db/models/donation");
 const request = require("supertest");
-const {
-    server,
-} = require("../../app");
+const app = require("../../app");
 
 require("dotenv").config();
 const sendEmail = require("../../utils/email");
@@ -51,36 +49,31 @@ const jwtVerifyMock = jest.spyOn(jwt, 'verify').mockReturnValue({
     sessionID: 'mockSessionId',
     created: Date.now()
 });
+let authToken; // Store the JWT token for authenticated requests
+let token;
+beforeAll(() => {
+            // Generate a mock JWT token for authentication
+            authToken = jwt.sign({
+                id: "mockUserId",
+                username: "mockUser",
+                email: "mockUser@mockUser.com",
+                isAdmin: false, // Set this based on your user model
+            }, process.env.JWT_SECRET);
 
+    token = jwt.sign({
+        sessionID: "mockSessionId",
+        created: "mockDate",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000), // Issued at date
+    }, process.env.JWT_SECRET);
+    });
 
 describe("Donation Controller", () => {
-    let authToken; // Store the JWT token for authenticated requests
-    let token;
-    beforeAll(() => {
-        // Generate a mock JWT token for authentication
-        authToken = jwt.sign({
-            id: "mockUserId",
-            username: "mockUser",
-            email: "mockUser@mockUser.com",
-            isAdmin: false, // Set this based on your user model
-        }, process.env.JWT_SECRET);
-
-        token = jwt.sign({
-            sessionID: "mockSessionId",
-            created: "mockDate",
-            exp: Math.floor(Date.now() / 1000) + 3600,
-            iat: Math.floor(Date.now() / 1000), // Issued at date
-        }, process.env.JWT_SECRET);
-    });
-
-    afterAll(() => {
-        server.close();
-    });
 
     // Test for checkout function
     describe("POST /donation/checkout", () => {
         it("should create a checkout session and redirect with token", async () => {
-            const response = await request(server)
+            const response = await request(app)
                 .post("/donation/checkout")
                 .set("Cookie", [`jwt=${authToken}`])
                 .expect(303);
@@ -114,7 +107,7 @@ describe("Donation Controller", () => {
                 }
             };
 
-            const response = await request(server)
+            const response = await request(app)
                 .get("/donation/success")
                 .set("Cookie", [`jwt=${authToken}`, `pSession=${token}`])
                 .expect(200); // Adjust the status code based on your implementation
@@ -139,7 +132,7 @@ describe("Donation Controller", () => {
 
     describe("GET /donation/cancel", () => {
         it('should respond with "Cancelled"', async () => {
-            const response = await request(server)
+            const response = await request(app)
                 .get("/donation/cancel")
                 .set("Cookie", [`jwt=${authToken}`])
                 .expect(200);

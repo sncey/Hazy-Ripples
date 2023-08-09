@@ -31,7 +31,7 @@ const updateExpiredEvents = async () => {
 
     console.log("Expired events updated. Result:", result);
   } catch (error) {
-    console.error("Error updating expired events:", error);
+    console.log("Error updating expired events:", error);
   }
 };
 

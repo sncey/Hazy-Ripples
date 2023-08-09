@@ -6,12 +6,14 @@ const eventController = {};
 eventController.getEvents = async (req, res) => {
   try {
     // Filter out expired events by adding { expired: false } to the query
-    const events = await EventModel.find({ expired: false }).populate(
-      "organizer"
-    );
-    res.json(events);
+    const events = await EventModel.find({
+      expired: false
+    }).populate("organizer");
+    res.status(200).json(events);
   } catch (error) {
-    res.status(500).json({ error: "Error while fetching events" });
+    res.status(500).json({
+      error: error.message
+    });
   }
 };
 // Get all expired events
@@ -68,14 +70,16 @@ eventController.attendEvent = async (req, res) => {
     const { eventId } = req.params;
     // Check if the event exists and is not expired
     const event = await EventModel.findById(eventId);
-    const user = await UserModel.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
     if (!event || event.expired) {
       return res
         .status(404)
         .json({ message: "Event not found or has already expired" });
+    }
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
     // Check if the user is already attending the event
     if (user.events?.includes(eventId)) {
