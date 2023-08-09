@@ -10,7 +10,7 @@ const swaggerOptions = require("./swagger/swaggerOptions"); // Import the Swagge
 const updateExpiredEvents = require("./utils/updateExpiredEvents");
 const path = require("path"); // Import the 'path' module
 
-const port = process.env.NODE_LOCAL_PORT || 8080;
+const port = process.env.NODE_LOCAL_PORT;
 
 const app = express();
 

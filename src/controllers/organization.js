@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/email");
 const welcomeTemplate = require("../emailTemplates/welcome");
 const organizationController = {};
+require("dotenv").config();
+
 const generateJWT = (organization, jwtExp) => {
   return jwt.sign(
     {
@@ -93,7 +95,7 @@ organizationController.signin = async (req, res) => {
 organizationController.signout = (req, res) => {
   try {
     res.clearCookie("jwt");
-    res.redirect("http://localhost:3000/api-docs");
+    res.redirect(`${process.env.DOMAIN}/api-docs`);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -142,7 +144,7 @@ organizationController.deleteAccount = async (req, res) => {
     }
     res.clearCookie("jwt");
     // res.json({ message: "Organization account deleted successfully" });
-    res.redirect("http://localhost:3000/api-docs");
+    res.redirect(`${process.env.DOMAIN}/api-docs`);
   } catch (error) {
     res
       .status(422)
