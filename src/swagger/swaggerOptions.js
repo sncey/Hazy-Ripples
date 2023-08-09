@@ -1,6 +1,4 @@
 const swaggerJsdoc = require("swagger-jsdoc");
-
-
 const swaggerOptions = {
     definition: {
       openapi: "3.0.0",
@@ -21,7 +19,7 @@ const swaggerOptions = {
       },
       servers: [
         {
-          url: "https://hazy-ripples.vercel.app",
+          url: `${process.env.DOMAIN}`,
         },
       ],
     },
@@ -33,9 +31,4 @@ const swaggerOptions = {
   };
 
 const specs = swaggerJsdoc(swaggerOptions);
-
-
-
-
-
 module.exports = specs;
