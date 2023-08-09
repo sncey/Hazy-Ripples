@@ -1,8 +1,8 @@
 /**
  * @swagger
  * tags:
- *   name: User Authentication 
- *   description: User Authentication endpoints 
+ *   name: User 
+ *   description: User Authentication and Interactivivty endpoints 
  */
 
 /**
@@ -11,7 +11,7 @@
  *   post:
  *     summary: Sign up user
  *     description: Sign up a new user with the provided details.
- *     tags: [User Authentication]
+ *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
@@ -125,7 +125,7 @@
  *   post:
  *     summary: Sign in user
  *     description: Sign in a user using their email or username along with the password.
- *     tags: [User Authentication]
+ *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
@@ -185,7 +185,7 @@
  *   put:
  *     summary: Update user profile
  *     description: Update the profile information for the authenticated user, including password.
- *     tags: [User Interactivity]
+ *     tags: [User]
  *     security:
  *       - cookieAuth: []
  *     requestBody:
@@ -298,7 +298,7 @@
  *   delete:
  *     summary: Delete user profile
  *     description: Delete the profile of the authenticated user.
- *     tags: [User Interactivity]
+ *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -353,7 +353,7 @@
  *   get:
  *     summary: Get user by ID
  *     description: Fetch a user by their ID.
- *     tags: [User Interactivity]
+ *     tags: [User]
  *     parameters:
  *       - in: path
  *         name: userId
@@ -446,7 +446,7 @@
  *   post:
  *     summary: Sign out user
  *     description: Sign out the authenticated user by clearing the JWT cookie.
- *     tags: [User Authentication]
+ *     tags: [User]
  *     security:
  *       - cookieAuth: []
  *     responses:

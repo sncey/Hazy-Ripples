@@ -25,7 +25,7 @@ const googleCallbackMiddleware = async (req, res) => {
 
     res.cookie('jwt', jwtToken, {
       maxAge: 14 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
+      httpOnly: false,
     }); 
     res.redirect('http://localhost:3000/api-docs');
   } catch (error) {

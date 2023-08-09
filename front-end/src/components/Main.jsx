@@ -1,8 +1,24 @@
-import React from 'react'; 
+import React, { useEffect, useState } from 'react'; 
 import '../styles/main.css'; // Import your CSS file for styling
 import centerImage from '../assets/Hazy Ocean .png'
 
+
 const MainSection = () => {
+  const [isJwtCookieAvailable, setIsJwtCookieAvailable] = useState(false);
+
+  // Effect to check JWT cookie on component mount and update
+  useEffect(() => {
+    const checkJwtCookie = () => {
+      const cookies = document.cookie.split('; ');
+      const jwtCookie = cookies.find(cookie => cookie.startsWith('jwt='));
+
+      return jwtCookie !== undefined;
+    };
+
+    const jwtCookieAvailable = checkJwtCookie();
+    console.log('Is JWT Cookie Available:', jwtCookieAvailable);
+    setIsJwtCookieAvailable(jwtCookieAvailable);
+  }, []);
   return (
     <main className="main-section">
        <div className="image-container">
@@ -22,6 +38,20 @@ const MainSection = () => {
         </p>
         <div className="button-container">
           <button className="main-button"><a className='main-button-link' href="/api-docs">Go to API documentation</a></button>
+          <form
+            action="http://localhost:3000/donation/checkout"
+            method="post"
+            target="_blank"
+          >
+            <button
+              className="donate-button"
+              type="submit"
+              id='donation'
+              disabled={!isJwtCookieAvailable} // Disable button if JWT cookie is not available
+            >
+              Donate
+            </button>
+          </form>
         </div>
       </div>
     </main>

@@ -60,7 +60,7 @@ describe('createAccount', () => {
         expect(res.status).not.toHaveBeenCalled(); // Ensure status is not called (no error)
         expect(res.json).toHaveBeenCalledWith(token);
         expect(res.cookie).toHaveBeenCalledWith('jwt', token, {
-            httpOnly: true
+            httpOnly: false
         });
       
         expect(OrganizationModel.findOne).toHaveBeenCalledWith({
@@ -171,7 +171,7 @@ describe('signin', () => {
     // Expectations
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith('test_token');
-    expect(res.cookie).toHaveBeenCalledWith('jwt', 'test_token', { httpOnly: true });
+    expect(res.cookie).toHaveBeenCalledWith('jwt', 'test_token', { httpOnly: false });
     expect(jwt.sign).toHaveBeenCalledWith(
       {
         id: organizationMock.id,
