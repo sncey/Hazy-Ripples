@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
 const donationSchema = new mongoose.Schema({
-  sessionID: { type: String, required: true},
+  sessionID: { type: String, required: true ,select: false , unique: true},
   amount: {type: Number, required: true},
   donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   date: { type: Date, required: true}
 });
 
-donationSchema.pre('save', function (next) {
-  this.date = new Date();
-  next();
-});
+// donationSchema.pre('save', function (next) {
+//   this.date = new Date();
+//   next();
+// });
 
 // donationSchema.pre('save', function (next) {
 //   if(!this.isModified('date') || this.isNew){
