@@ -57,7 +57,7 @@ organizationController.createAccount = async (req, res) => {
     const token = await generateJWT(organization, jwtExp);
     const emailText = welcomeTemplate(organization.name);
     sendEmail(email, "Welcome onboard", emailText);
-    res.cookie("jwt", token, { httpOnly: true });
+    res.cookie("jwt", token, { httpOnly: false });
     res.json(token);
   } catch (err) {
     console.log(err)
@@ -83,7 +83,7 @@ organizationController.signin = async (req, res) => {
       return res.status(400).json({ error: "Wrong username or password" });
     }
     const token = await generateJWT(organization, jwtExp);
-    res.cookie("jwt", token, { httpOnly: true });
+    res.cookie("jwt", token, { httpOnly: false });
     res.json(token);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -269,16 +269,7 @@ organizationController.updateEvent = async (req, res) => {
 organizationController.deleteEvent = async (req, res) => {
   try {
     const {eventId} = req.eventId
-    const {
-      title,
-      description,
-      location,
-      category,
-      start_date,
-      end_date,
-      image,
-      
-    } = req.body;
+
     // Check if the organization exists
     const organization = await OrganizationModel.findById(req.organization.id);
     if (!organization) {
@@ -297,14 +288,6 @@ organizationController.deleteEvent = async (req, res) => {
     if (!deletedEvent) {
       return res.json({ message: "Event has already been deleted" });
     }
-    event.title=title,
-    event.description=description,
-    event.location=location,
-    event.category=category,
-    event.start_date=start_date,
-    event.end_date=end_date,
-    event.image=image,
-
 
     // Delete the event from the EventModel collection
     await EventModel.deleteOne({ _id: event._id });

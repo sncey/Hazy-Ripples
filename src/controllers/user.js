@@ -58,7 +58,7 @@ userController.postSignin = async (req, res) => {
       return res.status(400).json({ error: "Wrong username or password" });
     }
     const token = await generateJWT(user, jwtExp);
-    res.cookie("jwt", token, { httpOnly: true });
+    res.cookie("jwt", token, { httpOnly: false });
     res.json(token);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -121,7 +121,7 @@ userController.postSignup = async (req, res) => {
     const token = await generateJWT(user, jwtExp);
     const emailText = welcomeTemplate(user.username);
     sendEmail(email, "Welcome onboard", emailText);
-    res.cookie("jwt", token, { httpOnly: true });
+    res.cookie("jwt", token, { httpOnly: false });
     res.json(token);
   } catch (err) {
     checkErorrCode(err, res);
