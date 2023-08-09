@@ -20,11 +20,11 @@ const swaggerOptions = {
           email: "hazyripples.noreply@gmail.com",
         },
       },
-      // servers: [
-      //   {
-      //     url: "http://localhost:3000",
-      //   },
-      // ],
+      servers: [
+        {
+          url: "https://hazy-ripples.vercel.app",
+        },
+      ],
     },
     components: {
       
