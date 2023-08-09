@@ -46,11 +46,13 @@ app.get('/', (req, res) => {
 
 app.use("/", apiRoutes);
 
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+}
+
 // Start the cron job
 updateExpiredEvents();
 
-const server = app.listen(port, () => {
-  console.debug(`Server listening on port ${port}`);
-});
-
-module.exports = { app, server };
+module.exports = app;
