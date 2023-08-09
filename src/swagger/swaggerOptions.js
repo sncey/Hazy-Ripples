@@ -4,6 +4,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerOptions = {
     definition: {
       openapi: "3.0.0",
+      host: "https://hazy-ripples.vercel.app",
       info: {
         title: "Hazy Ripples Voluntary platform",
         version: "0.1.0",
@@ -19,11 +20,11 @@ const swaggerOptions = {
           email: "hazyripples.noreply@gmail.com",
         },
       },
-      servers: [
-        {
-          url: "http://localhost:3000",
-        },
-      ],
+      // servers: [
+      //   {
+      //     url: "http://localhost:3000",
+      //   },
+      // ],
     },
     components: {
       
