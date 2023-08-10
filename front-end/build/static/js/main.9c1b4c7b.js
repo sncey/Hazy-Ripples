@@ -1,3 +1,4 @@
+require("dotenv").config();
 /*! For license information please see main.9c1b4c7b.js.LICENSE.txt */
 ! function () {
     "use strict";
@@ -7076,7 +7077,7 @@
                                         children: "Go to API documentation"
                                     })
                                 }), (0, a.jsx)("form", {
-                                    action: "http://3.67.181.83:8080/donation/checkout",
+                                    action: `${process.env.DOMAIN}/donation/checkout`,
                                     method: "post",
                                     target: "_blank",
                                     children: (0, a.jsx)("button", {

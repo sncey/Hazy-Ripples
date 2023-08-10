@@ -2,24 +2,23 @@ import React, { useEffect, useState } from 'react';
 import '../styles/main.css'; // Import your CSS file for styling
 import centerImage from '../assets/Hazy Ocean .png'
 
-
 const MainSection = () => {
-  const [isJwtCookieAvailable, setIsJwtCookieAvailable] = useState(false);
+	const [isJwtCookieAvailable, setIsJwtCookieAvailable] = useState(false);
 
-  // Effect to check JWT cookie on component mount and update
-  useEffect(() => {
-    const checkJwtCookie = () => {
-      const cookies = document.cookie.split('; ');
-      const jwtCookie = cookies.find(cookie => cookie.startsWith('jwt='));
+	// Effect to check JWT cookie on component mount and update
+	useEffect(() => {
+		const checkJwtCookie = () => {
+			const cookies = document.cookie.split("; ");
+			const jwtCookie = cookies.find((cookie) => cookie.startsWith("jwt="));
 
-      return jwtCookie !== undefined;
-    };
+			return jwtCookie !== undefined;
+		};
 
-    const jwtCookieAvailable = checkJwtCookie();
-    console.log('Is JWT Cookie Available:', jwtCookieAvailable);
-    setIsJwtCookieAvailable(jwtCookieAvailable);
-  }, []);
-  return (
+		const jwtCookieAvailable = checkJwtCookie();
+		console.log("Is JWT Cookie Available:", jwtCookieAvailable);
+		setIsJwtCookieAvailable(jwtCookieAvailable);
+	}, []);
+	return (
 		<main className="main-section">
 			<div className="image-container">
 				<img src={centerImage} alt="Hazy Ocean" className="center-image" />
@@ -58,7 +57,7 @@ const MainSection = () => {
 						</a>
 					</button>
 					<form
-						action="http://3.67.181.83:8080/donation/checkout"
+						action="http://3.120.35.228:8080/donation/checkout"
 						method="post"
 						target="_blank"
 					>
