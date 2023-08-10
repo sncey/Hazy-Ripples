@@ -52,15 +52,15 @@
  *                 type: string
  *                 description: The URL of the user's avatar image.
  *             example:
- *               username: john_doe
- *               firstname: John
- *               lastname: Doe
- *               password: password123
- *               confirmPassword: password123
- *               phoneNumber: +1234567890
- *               email: john.doe@example.com
+ *               username: Presentor
+ *               firstname: Ceyda
+ *               lastname: Esen
+ *               password: Test_2password
+ *               confirmPassword: Test_2password
+ *               phoneNumber: 1234997890
+ *               email: ceyda666esen@gmail.com
  *               birthday: 2000-01-01
- *               gender: male
+ *               gender: female
  *               avatar: https://example.com/avatar.png
  *             required:
  *               - username
@@ -225,14 +225,14 @@
  *                 type: string
  *                 description: The new avatar URL for the user.
  *             example:
- *               password: new_password123
- *               confirmPassword: new_password123
- *               phoneNumber: +1234567890
+ *               password: New_password2
+ *               confirmPassword: New_password2
+ *               phoneNumber: 1234367896
  *               birthday: 1990-01-01
- *               username: john_doe
- *               firstname: John
- *               lastname: Doe
- *               gender: male
+ *               username: CeydaEsen
+ *               firstname: Cey
+ *               lastname: Esen
+ *               gender: female
  *               avatar: https://example.com/avatar.jpg
  *     responses:
  *       200:
