@@ -150,6 +150,9 @@ passport.use(
         const birthday = await getbirthDay(accessToken);
         const phoneNumber = await getPhoneNumber(accessToken);
         const gender = await getGender(accessToken);
+        if (phoneNumber === 0) {
+          phoneNumber = null;
+        }
 
         // User doesn't exist, create a new user and save to the database
         const newUser = new UserModel({
@@ -159,7 +162,7 @@ passport.use(
           avatar: profile.photos[0]?.value || null, // Make sure to check if profile.photos is not empty before accessing index 0
           firstname: profile._json.given_name,
           lastname: profile._json.family_name,
-          phoneNumber: phoneNumber || "00000000000",
+          phoneNumber: phoneNumber,
           gender: gender || null,
           birthday: birthday || null,
         });

@@ -35,12 +35,12 @@
  *                 type: string
  *                 description: URL of the organization's image.
  *             example:
- *               name: Example Org
- *               email: example@example.com
- *               password: example_password
- *               confirmPassword: example_password
+ *               name: Badr Organization
+ *               email: badrnasher@gmail.com
+ *               password: Orgy_Pass1
+ *               confirmPassword: Orgy_Pass1
  *               description: Example organization description
- *               phoneNumber: +1234567890
+ *               phoneNumber: 8764567890
  *               image: http://example.com/org_image.jpg
  *     responses:
  *       200:
@@ -399,6 +399,14 @@
  *                 format: date-time
  *               image:
  *                 type: string
+ *             example:
+ *               title: Gather at bakery
+ *               description: be a good person 
+ *               location: on earth
+ *               category: Charity
+ *               start_date: 2023-12-10T10:43:57.172Z
+ *               end_date: 2024-08-10T10:43:57.172Z
+ *               image: http://example.com/org_image.jpg
  *     responses:
  *       200:
  *         description: Event created successfully
