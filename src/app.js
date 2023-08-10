@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const apiRoutes = require("./routes/index");
 const cookieParser = require("cookie-parser");
@@ -10,8 +9,7 @@ const swaggerOptions = require("./swagger/swaggerOptions"); // Import the Swagge
 const updateExpiredEvents = require("./utils/updateExpiredEvents");
 const path = require("path"); // Import the 'path' module
 
-const port = process.env.NODE_LOCAL_PORT;
-
+const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
 
 function attachUserToRequest(req, res, next) {
