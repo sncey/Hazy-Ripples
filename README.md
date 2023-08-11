@@ -179,7 +179,6 @@ As an organization, I want to be able to:
 - ![Dotenv](https://img.shields.io/badge/Dotenv-yellowgreen)
 - ![Nodemon](https://img.shields.io/badge/Nodemon-brightgreen)
 - ![Morgan](https://img.shields.io/badge/Morgan-blue)
-- ![Nodemailer](https://img.shields.io/badge/Nodemailer-9cf)
 - [![Passport.js](https://img.shields.io/badge/Passport.js-brightgreen)](http://www.passportjs.org/)
 - [![Nodemailer](https://img.shields.io/badge/Nodemailer-red)](https://nodemailer.com/)
 - [![Cron Job](https://img.shields.io/badge/Cron%20Job-lightblue)](https://www.npmjs.com/package/node-cron)
